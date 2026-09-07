@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
-import { Bill, saveBills, resetReceiptSequenceForDemo } from "./bills";
-import { Customer, saveCustomers } from "./customers";
+import { Bill, resetReceiptSequenceForDemo } from "./bills";
+import { Customer } from "./customers";
 import { subDays, format } from "date-fns";
 import { numberToWords } from "./numberToWords";
 
@@ -66,8 +66,7 @@ export const loadDemoData = () => {
     }
   ];
 
-  // Bills are usually sorted newest first
-  saveBills(bills.reverse());
-  saveCustomers(customers);
+  void bills;
+  void customers;
   resetReceiptSequenceForDemo(10);
 };

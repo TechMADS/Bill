@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getSettings, saveSettings, BusinessSettings } from "@/lib/settings";
-import { loadDemoData } from "@/lib/demo-data";
-import { Save, Database } from "lucide-react";
+import { Save } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -31,24 +30,12 @@ export default function Settings() {
     setTimeout(() => setSaveStatus(""), 3000);
   };
 
-  const handleLoadDemoData = () => {
-    if (confirm("This will overwrite existing data. Proceed?")) {
-      loadDemoData();
-      setSaveStatus("Demo data loaded successfully!");
-      setTimeout(() => setSaveStatus(""), 3000);
-      window.location.reload();
-    }
-  };
-
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-20">
       <PageHeader 
         title="Settings" 
         action={
           <div className="flex items-center gap-3">
-            <Button variant="secondary" onClick={handleLoadDemoData} icon={<Database className="h-4 w-4" />}>
-              Load Demo Data
-            </Button>
             <Button onClick={handleSave} icon={<Save className="h-4 w-4" />}>
               Save Settings
             </Button>

@@ -1,23 +1,35 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getCustomers, Customer } from "@/lib/customers";
+import { deriveCustomers, Customer } from "@/lib/customers";
+import { getBills } from "@/lib/bills";
 import { Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { CustomerTable } from "@/components/customers/CustomerTable";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 
 export default function CustomersList() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const c = getCustomers();
-    setCustomers(c);
-    setFilteredCustomers(c);
-    setMounted(true);
+    getBills()
+      .then(bills => {
+        const derived = deriveCustomers(bills);
+        setCustomers(derived);
+        setFilteredCustomers(derived);
+      })
+      .catch(error => setError(error instanceof Error ? error.message : "Failed to fetch customers"))
+      .finally(() => {
+        setLoading(false);
+        setMounted(true);
+      });
   }, []);
 
   useEffect(() => {
@@ -32,7 +44,8 @@ export default function CustomersList() {
     }
   }, [searchTerm, customers]);
 
-  if (!mounted) return null;
+  if (!mounted || loading) return <Loading text="Loading customers from Google Sheets..." />;
+  if (error) return <EmptyState title="Unable to load customers" description={error} />;
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">

@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save } from "lucide-react";
-import { v4 as uuidv4 } from "uuid";
-import { Bill, saveBills, getBills, getNextReceiptNumber, PaymentMethod } from "@/lib/bills";
-import { getCustomers, Customer, saveCustomers } from "@/lib/customers";
+import { Loader2, Save } from "lucide-react";
+import { createBill, getNextReceiptNumber, PaymentMethod } from "@/lib/bills";
 import { getSettings } from "@/lib/settings";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -29,12 +27,18 @@ export default function CreateBill() {
   const [upiTransactionId, setUpiTransactionId] = useState("");
   const [paymentReceivedBy, setPaymentReceivedBy] = useState("");
   const [amountInWords, setAmountInWords] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const s = getSettings();
     setPaymentReceivedBy(s.defaultReceiverName);
-    
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    getNextReceiptNumber()
+      .then(setReceiptNumber)
+      .catch(error => alert(error instanceof Error ? `Failed to generate receipt number: ${error.message}` : "Failed to generate receipt number"));
   }, []);
 
   useEffect(() => {
@@ -45,60 +49,36 @@ export default function CreateBill() {
     }
   }, [amount]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!customerName || amount <= 0) {
       alert("Please enter customer name and valid amount");
       return;
     }
-
-    const customers = getCustomers();
-    let customer = customers.find(c => c.name.toLowerCase() === customerName.toLowerCase());
-    
-    if (!customer) {
-      customer = {
-        id: uuidv4(),
-        name: customerName,
-        phone: customerPhone,
-        totalBills: 1,
-        totalPaid: amount,
-        lastPaymentDate: date
-      };
-      saveCustomers([...customers, customer]);
-    } else {
-      const updatedCustomers = customers.map(c => {
-        if (c.id === customer!.id) {
-          return { 
-            ...c, 
-            totalBills: c.totalBills + 1,
-            totalPaid: c.totalPaid + amount,
-            lastPaymentDate: date
-          };
-        }
-        return c;
-      });
-      saveCustomers(updatedCustomers);
+    if (!receiptNumber) {
+      alert("Receipt number is still being generated. Please try again.");
+      return;
     }
 
-    const finalReceiptNumber = receiptNumber || getNextReceiptNumber();
+    setIsSaving(true);
+    const finalReceiptNumber = receiptNumber;
 
-    const newBill: Bill = {
-      id: uuidv4(),
-      receiptNumber: finalReceiptNumber,
-      date,
-      customerName,
-      customerPhone,
-      paymentReceivedBy,
-      amount,
-      paymentMethod,
-      upiTransactionId: paymentMethod === "UPI" ? upiTransactionId : undefined,
-      amountInWords,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    const fields: Record<string, string> = {
+      "Receipt Number": finalReceiptNumber,
+      "Date": date,
+      "Customer Name": customerName,
+      "Phone Number": customerPhone,
+      "Received By": paymentReceivedBy,
+      "Amount": String(amount),
+      "Payment Method": paymentMethod,
     };
-
-    const bills = getBills();
-    saveBills([newBill, ...bills]);
-    router.push(`/bills/${newBill.id}`);
+    try {
+      const newBill = await createBill({ fields });
+      router.push(`/bills/${newBill.id}`);
+    } catch (error) {
+      alert(error instanceof Error ? `Failed to save bill: ${error.message}` : "Failed to save bill");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!mounted) return null;
@@ -108,8 +88,12 @@ export default function CreateBill() {
       <PageHeader 
         title="Create Receipt" 
         action={
-          <Button onClick={handleSave} icon={<Save className="h-4 w-4" />}>
-            Save & Generate
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            icon={isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          >
+            {isSaving ? "Saving..." : "Save & Generate"}
           </Button>
         }
       />
@@ -120,8 +104,8 @@ export default function CreateBill() {
           <CardContent className="space-y-4">
             <Input 
               label="Receipt Number" 
-              value={receiptNumber} 
-              onChange={e => setReceiptNumber(e.target.value)} 
+              value={receiptNumber}
+              readOnly
             />
             <Input 
               type="date" 
@@ -150,7 +134,10 @@ export default function CreateBill() {
               label="Phone Number" 
               placeholder="(555) 123-4567" 
               value={customerPhone} 
-              onChange={e => setCustomerPhone(e.target.value)} 
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={10}
+              onChange={e => setCustomerPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} 
             />
           </CardContent>
         </Card>

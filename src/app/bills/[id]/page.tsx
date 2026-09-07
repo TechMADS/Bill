@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getBills, Bill, saveBills } from "@/lib/bills";
+import { deleteBill, getBills, Bill } from "@/lib/bills";
 import { getSettings, BusinessSettings } from "@/lib/settings";
 import { ArrowLeft, Download, Printer, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -22,13 +22,13 @@ export default function BillDetails() {
   const receiptRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const bills = getBills();
-    const foundBill = bills.find(b => b.id === id);
-    if (foundBill) {
-      setBill(foundBill);
-    }
-    setSettings(getSettings());
-    setMounted(true);
+    getBills()
+      .then(bills => setBill(bills.find(b => b.id === id) ?? null))
+      .catch(error => alert(error instanceof Error ? `Failed to fetch bill: ${error.message}` : "Failed to fetch bill"))
+      .finally(() => {
+        setSettings(getSettings());
+        setMounted(true);
+      });
   }, [id]);
 
   if (!mounted || !settings) return null;
@@ -42,11 +42,18 @@ export default function BillDetails() {
     );
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (confirm("Are you sure you want to delete this receipt?")) {
-      const bills = getBills();
-      saveBills(bills.filter(b => b.id !== id));
-      router.push("/bills");
+      if (!bill?.rowNumber) {
+        alert("This bill has no valid sheet row number");
+        return;
+      }
+      try {
+        await deleteBill(bill.rowNumber);
+        router.push("/bills");
+      } catch (error) {
+        alert(error instanceof Error ? `Failed to delete bill: ${error.message}` : "Failed to delete bill");
+      }
     }
   };
 

@@ -8,6 +8,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Loading } from "@/components/ui/Loading";
 import {
   PieChart,
   Pie,
@@ -20,13 +22,21 @@ import {
 export default function Reports() {
   const [bills, setBills] = useState<Bill[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    setBills(getBills());
-    setMounted(true);
+    getBills()
+      .then(setBills)
+      .catch(error => setError(error instanceof Error ? error.message : "Failed to fetch report data"))
+      .finally(() => {
+        setLoading(false);
+        setMounted(true);
+      });
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted || loading) return <Loading text="Loading reports from Google Sheets..." />;
+  if (error) return <EmptyState title="Unable to load reports" description={error} />;
 
   const totalRevenue = calculateTotalRevenue(bills);
   const totalUPI = calculateUPIRevenue(bills);

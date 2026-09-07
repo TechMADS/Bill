@@ -4,7 +4,7 @@ import { DollarSign, FileText, Users, Receipt } from "lucide-react";
 
 import { useEffect, useState } from "react";
 import { getBills, Bill } from "@/lib/bills";
-import { getCustomers, Customer } from "@/lib/customers";
+import { deriveCustomers, Customer } from "@/lib/customers";
 import { getSettings, BusinessSettings } from "@/lib/settings";
 import { calculateTotalRevenue, calculateUPIRevenue, calculateRevenueLast7Days } from "@/lib/calculations";
 import { format } from "date-fns";
@@ -20,8 +20,12 @@ export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setBills(getBills());
-    setCustomers(getCustomers());
+    getBills()
+      .then(fetchedBills => {
+        setBills(fetchedBills);
+        setCustomers(deriveCustomers(fetchedBills));
+      })
+      .catch(error => alert(error instanceof Error ? `Failed to fetch bills: ${error.message}` : "Failed to fetch bills"));
     setSettings(getSettings());
     setMounted(true);
   }, []);
