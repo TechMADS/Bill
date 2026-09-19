@@ -77,11 +77,40 @@ export default function Settings() {
               value={settings.phone} 
               onChange={e => handleChange("phone", e.target.value)} 
             />
+            <Input
+              label="Email"
+              type="email"
+              value={settings.email}
+              onChange={e => handleChange("email", e.target.value)}
+            />
             <Input 
               label="GST Number" 
               value={settings.gstNumber} 
               onChange={e => handleChange("gstNumber", e.target.value)} 
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader title="GST Invoice Details" />
+        <CardContent className="space-y-4">
+          <Input
+            label="Business Legal Name"
+            value={settings.businessLegalName}
+            onChange={e => handleChange("businessLegalName", e.target.value)}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="State" value={settings.state} onChange={e => handleChange("state", e.target.value)} />
+            <Input label="State Code" value={settings.stateCode} onChange={e => handleChange("stateCode", e.target.value)} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="Bank Name" value={settings.bankName} onChange={e => handleChange("bankName", e.target.value)} />
+            <Input label="Account Number" value={settings.accountNumber} onChange={e => handleChange("accountNumber", e.target.value)} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="IFSC" value={settings.ifsc} onChange={e => handleChange("ifsc", e.target.value)} />
+            <Input label="Authorized Signatory" value={settings.authorizedSignatory} onChange={e => handleChange("authorizedSignatory", e.target.value)} />
           </div>
         </CardContent>
       </Card>

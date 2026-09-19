@@ -1,13 +1,13 @@
 import React from "react";
-import { Customer } from "@/lib/customers";
+import { Customer, formatCustomerLastPaymentDate } from "@/lib/customers";
 import { Mail, Phone } from "lucide-react";
+import { formatCurrency } from "@/lib/numberToWords";
 
 interface CustomerTableProps {
   customers: Customer[];
-  currencySymbol: string;
 }
 
-export function CustomerTable({ customers, currencySymbol }: CustomerTableProps) {
+export function CustomerTable({ customers }: CustomerTableProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
       {customers.length > 0 ? customers.map((customer) => (
@@ -19,7 +19,7 @@ export function CustomerTable({ customers, currencySymbol }: CustomerTableProps)
             <div>
               <h3 className="font-semibold text-slate-800">{customer.name}</h3>
               <p className="text-xs font-medium text-blue-600">
-                Total Paid: {currencySymbol}{customer.totalPaid.toFixed(2)}
+                Total Paid: {formatCurrency(customer.totalPaid)}
               </p>
             </div>
           </div>
@@ -33,7 +33,7 @@ export function CustomerTable({ customers, currencySymbol }: CustomerTableProps)
             )}
             <div className="flex justify-between items-center mt-2 text-xs text-slate-500">
               <span>Total Bills: {customer.totalBills}</span>
-              {customer.lastPaymentDate && <span>Last: {customer.lastPaymentDate}</span>}
+              {customer.lastPaymentDate && <span>Last: {formatCustomerLastPaymentDate(customer.lastPaymentDate)}</span>}
             </div>
           </div>
         </div>

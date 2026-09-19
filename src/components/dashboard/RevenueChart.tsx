@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card, CardHeader, CardContent } from "../ui/Card";
+import { formatCurrency } from "@/lib/numberToWords";
 
 interface RevenueChartProps {
   data: { name: string; revenue: number }[];
@@ -23,13 +24,13 @@ export function RevenueChart({ data }: RevenueChartProps) {
       <CardContent>
         <div className="h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+            <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 72 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} tickFormatter={(val) => `$${val}`} dx={-10} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b' }} tickFormatter={(val) => formatCurrency(Number(val))} />
               <Tooltip
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                formatter={(value: any) => [`$${Number(value).toLocaleString()}`, 'Revenue']}
+                formatter={(value: any) => [formatCurrency(Number(value)), 'Revenue']}
               />
               <Line
                 type="monotone"

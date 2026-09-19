@@ -13,7 +13,7 @@ interface ReceiptPreviewProps {
 export const ReceiptPreview = forwardRef<HTMLDivElement, ReceiptPreviewProps>(
   ({ bill, settings }, ref) => {
     return (
-      <div className="bg-slate-200 p-4 md:p-8 rounded-xl flex justify-center print:bg-white print:p-0 w-full overflow-x-auto">
+      <div className="print-receipt bg-slate-200 p-4 md:p-8 rounded-xl flex justify-center print:bg-white print:p-0 w-full overflow-x-auto">
         <div 
           ref={ref} 
           className="bg-white w-full min-w-[600px] max-w-[800px] shadow-lg print:shadow-none p-8 md:p-14 text-slate-800 flex flex-col"

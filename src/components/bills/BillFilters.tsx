@@ -7,9 +7,11 @@ interface BillFiltersProps {
   onSearchChange: (val: string) => void;
   methodFilter: PaymentMethod | "All";
   onMethodFilterChange: (val: PaymentMethod | "All") => void;
+  dateFilter: string;
+  onDateFilterChange: (val: string) => void;
 }
 
-export function BillFilters({ searchTerm, onSearchChange, methodFilter, onMethodFilterChange }: BillFiltersProps) {
+export function BillFilters({ searchTerm, onSearchChange, methodFilter, onMethodFilterChange, dateFilter, onDateFilterChange }: BillFiltersProps) {
   return (
     <div className="p-4 border-b flex flex-col sm:flex-row gap-4 justify-between bg-slate-50">
       <div className="relative w-full sm:w-96">
@@ -24,6 +26,12 @@ export function BillFilters({ searchTerm, onSearchChange, methodFilter, onMethod
       </div>
       <div className="flex items-center gap-2">
         <Filter className="h-4 w-4 text-slate-500" />
+        <input
+          type="date"
+          value={dateFilter}
+          onChange={e => onDateFilterChange(e.target.value)}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+        />
         <select 
           value={methodFilter}
           onChange={(e) => onMethodFilterChange(e.target.value as PaymentMethod | "All")}

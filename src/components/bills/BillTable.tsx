@@ -2,15 +2,15 @@ import React from "react";
 import { Bill } from "@/lib/bills";
 import { format } from "date-fns";
 import Link from "next/link";
-import { Eye } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import { Badge } from "../ui/Badge";
+import { formatCurrency } from "@/lib/numberToWords";
 
 interface BillTableProps {
   bills: Bill[];
-  currencySymbol: string;
 }
 
-export function BillTable({ bills, currencySymbol }: BillTableProps) {
+export function BillTable({ bills }: BillTableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
@@ -37,11 +37,14 @@ export function BillTable({ bills, currencySymbol }: BillTableProps) {
                   </Badge>
                 </td>
                 <td className="px-6 py-4 text-right font-medium text-slate-800">
-                  {currencySymbol}{bill.amount.toFixed(2)}
+                  {formatCurrency(bill.amount)}
                 </td>
                 <td className="px-6 py-4 text-center">
                   <Link href={`/bills/${bill.id}`} className="inline-flex items-center justify-center p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                     <Eye className="h-5 w-5" />
+                  </Link>
+                  <Link href={`/bills/${bill.id}?download=1`} aria-label={`Download ${bill.receiptNumber} PDF`} className="inline-flex items-center justify-center p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                    <Download className="h-5 w-5" />
                   </Link>
                 </td>
               </tr>

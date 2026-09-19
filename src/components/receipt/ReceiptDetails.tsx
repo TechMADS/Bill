@@ -45,11 +45,6 @@ export function ReceiptDetails({ bill }: ReceiptDetailsProps) {
             <span className="text-slate-500 block mb-1">Payment Method</span>
             <div className="font-medium text-slate-800">
               {bill.paymentMethod}
-              {bill.paymentMethod === "UPI" && bill.upiTransactionId && (
-                <span className="text-slate-500 font-normal ml-2 text-xs">
-                  (Txn ID: {bill.upiTransactionId})
-                </span>
-              )}
             </div>
           </div>
         </div>

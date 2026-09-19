@@ -6,10 +6,9 @@ import { formatCurrency } from "@/lib/numberToWords";
 
 interface RecentBillsProps {
   bills: Bill[];
-  currencySymbol: string;
 }
 
-export function RecentBills({ bills, currencySymbol }: RecentBillsProps) {
+export function RecentBills({ bills }: RecentBillsProps) {
   return (
     <Card>
       <CardHeader title="Recent Activity" />
@@ -22,7 +21,7 @@ export function RecentBills({ bills, currencySymbol }: RecentBillsProps) {
                 <p className="text-xs text-slate-500">Receipt {bill.receiptNumber}</p>
               </div>
               <div className="text-right flex flex-col items-end gap-1">
-                <p className="text-sm font-bold text-slate-800">{currencySymbol}{bill.amount.toFixed(2)}</p>
+                <p className="text-sm font-bold text-slate-800">{formatCurrency(bill.amount)}</p>
                 <Badge variant={bill.paymentMethod === "UPI" ? "primary" : "neutral"}>
                   {bill.paymentMethod}
                 </Badge>

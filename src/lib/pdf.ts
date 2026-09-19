@@ -1,10 +1,15 @@
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import type { RefObject } from "react";
 
-export const generatePDF = async (elementRef: React.RefObject<HTMLElement>, filename: string) => {
-  if (!elementRef.current) return;
+export const generatePDF = async (elementRef: RefObject<HTMLElement | null>, filename: string) => {
+  if (typeof window === "undefined" || !elementRef.current) {
+    throw new Error("PDF generation is only available in the browser");
+  }
   
   try {
+    const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+      import("html2canvas"),
+      import("jspdf"),
+    ]);
     const canvas = await html2canvas(elementRef.current, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jsPDF({
@@ -15,8 +20,8 @@ export const generatePDF = async (elementRef: React.RefObject<HTMLElement>, file
     
     pdf.addImage(imgData, "PNG", 0, 0, canvas.width / 2, canvas.height / 2);
     pdf.save(`${filename}.pdf`);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Failed to generate PDF", err);
-    throw new Error(err?.message || "Unknown error occurred during PDF generation");
+    throw new Error(err instanceof Error ? err.message : "Unknown error occurred during PDF generation");
   }
 };

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { deriveCustomers, Customer } from "@/lib/customers";
 import { getBills } from "@/lib/bills";
+import { isGstBill } from "@/lib/gst";
 import { Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/Card";
@@ -21,7 +22,7 @@ export default function CustomersList() {
   useEffect(() => {
     getBills()
       .then(bills => {
-        const derived = deriveCustomers(bills);
+        const derived = deriveCustomers(bills.filter(bill => !isGstBill(bill)));
         setCustomers(derived);
         setFilteredCustomers(derived);
       })
@@ -65,7 +66,7 @@ export default function CustomersList() {
           </div>
         </div>
 
-        <CustomerTable customers={filteredCustomers} currencySymbol="₹" />
+        <CustomerTable customers={filteredCustomers} />
       </Card>
     </div>
   );

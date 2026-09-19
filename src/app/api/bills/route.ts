@@ -13,16 +13,26 @@ const getConfiguration = () => {
 
 const readJson = async (response: Response): Promise<unknown> => {
   const text = await response.text();
-  if (!text) return null;
+  if (!text.trim()) return null;
 
   try {
-    return JSON.parse(text);
+    return JSON.parse(text.replace(/^\uFEFF/, ""));
   } catch {
-    throw new Error("Google Apps Script returned an invalid response");
+    const status = response.status ? ` (HTTP ${response.status})` : "";
+    throw new Error(`Google Apps Script returned a non-JSON response${status}`);
   }
 };
 
 const forwardResponse = (data: unknown) => NextResponse.json(data, { status: 200 });
+
+const fetchUpstream = async (url: string, init?: RequestInit): Promise<Response> => {
+  let response = await fetch(url, { ...init, cache: "no-store" });
+  for (let attempt = 0; attempt < 2 && (response.status === 404 || response.status >= 500); attempt += 1) {
+    await new Promise(resolve => setTimeout(resolve, 250));
+    response = await fetch(url, { ...init, cache: "no-store" });
+  }
+  return response;
+};
 
 class RequestError extends Error {
   constructor(public status: number, message: string) {
@@ -39,11 +49,6 @@ const ensureUpstreamSuccess = (data: unknown) => {
   return data;
 };
 
-const fieldsForGoogleSheets = (fields: Record<string, unknown>) =>
-  Object.fromEntries(
-    Object.entries(fields).filter(([key]) => key.toLowerCase() !== "upi transaction id")
-  );
-
 const handleError = (error: unknown) => {
   const message = error instanceof Error ? error.message : "Unexpected billing service error";
   const status = error instanceof RequestError
@@ -59,7 +64,7 @@ export async function GET() {
     url.searchParams.set("action", "get");
     url.searchParams.set("shopId", shopId);
 
-    const response = await fetch(url, { cache: "no-store" });
+    const response = await fetchUpstream(url.toString());
     const data = ensureUpstreamSuccess(await readJson(response));
     if (!response.ok) throw new Error("Failed to fetch bills from Google Sheets");
     return forwardResponse(data);
@@ -84,10 +89,9 @@ const forwardMutation = async (request: Request, action: "create" | "update" | "
     ...body,
     action,
     shopId,
-    ...(action === "delete" ? {} : { fields: fieldsForGoogleSheets(body.fields) }),
   };
 
-  const response = await fetch(scriptUrl, {
+  const response = await fetchUpstream(scriptUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

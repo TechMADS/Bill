@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Save } from "lucide-react";
+import { FileText, Loader2, Save } from "lucide-react";
 import { createBill, getNextReceiptNumber, PaymentMethod } from "@/lib/bills";
 import { getSettings } from "@/lib/settings";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import Link from "next/link";
 
 export default function CreateBill() {
   const router = useRouter();
@@ -24,7 +25,6 @@ export default function CreateBill() {
   
   const [amount, setAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Cash");
-  const [upiTransactionId, setUpiTransactionId] = useState("");
   const [paymentReceivedBy, setPaymentReceivedBy] = useState("");
   const [amountInWords, setAmountInWords] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -61,6 +61,7 @@ export default function CreateBill() {
 
     setIsSaving(true);
     const finalReceiptNumber = receiptNumber;
+    const createdAt = new Date().toISOString();
 
     const fields: Record<string, string> = {
       "Receipt Number": finalReceiptNumber,
@@ -70,10 +71,17 @@ export default function CreateBill() {
       "Received By": paymentReceivedBy,
       "Amount": String(amount),
       "Payment Method": paymentMethod,
+      "Amount in Words": amountInWords,
+      "Created At": createdAt,
+      "Updated At": createdAt,
     };
     try {
       const newBill = await createBill({ fields });
-      router.push(`/bills/${newBill.id}`);
+      const billRouteId = newBill.id || newBill.receiptNumber;
+      if (!billRouteId) {
+        throw new Error("Unable to identify the newly created bill");
+      }
+      router.push(`/bills/${encodeURIComponent(billRouteId)}`);
     } catch (error) {
       alert(error instanceof Error ? `Failed to save bill: ${error.message}` : "Failed to save bill");
     } finally {
@@ -88,13 +96,16 @@ export default function CreateBill() {
       <PageHeader 
         title="Create Receipt" 
         action={
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            icon={isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          >
-            {isSaving ? "Saving..." : "Save & Generate"}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button onClick={handleSave} disabled={isSaving} icon={isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}>
+              {isSaving ? "Saving..." : "Save & Generate"}
+            </Button>
+            <Link href="/create-gst-bill">
+              <Button type="button" variant="secondary" icon={<FileText className="h-4 w-4" />}>
+                GST BILL
+              </Button>
+            </Link>
+          </div>
         }
       />
 
@@ -164,15 +175,6 @@ export default function CreateBill() {
             />
           </div>
           
-          {paymentMethod === "UPI" && (
-            <Input 
-              label="UPI Transaction ID" 
-              placeholder="Enter transaction reference" 
-              value={upiTransactionId} 
-              onChange={e => setUpiTransactionId(e.target.value)} 
-            />
-          )}
-
           <div className="pt-2">
             <label className="block text-sm font-medium text-slate-700 mb-1">Amount in Words</label>
             <div className="w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700 italic min-h-[38px]">

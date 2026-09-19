@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { deleteBill, getBills, Bill } from "@/lib/bills";
+import { isGstBill } from "@/lib/gst";
 import { getSettings, BusinessSettings } from "@/lib/settings";
 import { ArrowLeft, Download, Printer, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -14,7 +15,9 @@ import { ReceiptPreview } from "@/components/receipt/ReceiptPreview";
 export default function BillDetails() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const id = params.id as string;
+  const shouldDownload = searchParams.get("download") === "1";
   
   const [bill, setBill] = useState<Bill | null>(null);
   const [settings, setSettings] = useState<BusinessSettings | null>(null);
@@ -23,13 +26,19 @@ export default function BillDetails() {
 
   useEffect(() => {
     getBills()
-      .then(bills => setBill(bills.find(b => b.id === id) ?? null))
+      .then(bills => setBill(bills.find(bill => !isGstBill(bill) && (bill.id === id || bill.receiptNumber === id)) ?? null))
       .catch(error => alert(error instanceof Error ? `Failed to fetch bill: ${error.message}` : "Failed to fetch bill"))
       .finally(() => {
         setSettings(getSettings());
         setMounted(true);
       });
   }, [id]);
+
+  useEffect(() => {
+    if (bill && settings && shouldDownload) {
+      void handleDownloadPDF();
+    }
+  }, [bill, settings, shouldDownload]);
 
   if (!mounted || !settings) return null;
 
@@ -63,9 +72,9 @@ export default function BillDetails() {
 
   const handleDownloadPDF = async () => {
     try {
-      await generatePDF(receiptRef as any, bill.receiptNumber);
-    } catch (err: any) {
-      alert(`Failed to generate PDF: ${err.message}`);
+      await generatePDF(receiptRef, bill.receiptNumber);
+    } catch (err: unknown) {
+      alert(`Failed to generate PDF: ${err instanceof Error ? err.message : "Unknown PDF error"}`);
     }
   };
 

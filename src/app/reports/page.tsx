@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { getBills, Bill } from "@/lib/bills";
+import { isGstBill } from "@/lib/gst";
 import { calculateTotalRevenue, calculateUPIRevenue, calculateCashRevenue, calculateRevenueLast7Days } from "@/lib/calculations";
-import { format, subDays } from "date-fns";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
@@ -18,6 +18,7 @@ import {
   Legend,
   ResponsiveContainer
 } from "recharts";
+import { formatCurrency } from "@/lib/numberToWords";
 
 export default function Reports() {
   const [bills, setBills] = useState<Bill[]>([]);
@@ -27,7 +28,7 @@ export default function Reports() {
 
   useEffect(() => {
     getBills()
-      .then(setBills)
+      .then(bills => setBills(bills.filter(bill => !isGstBill(bill))))
       .catch(error => setError(error instanceof Error ? error.message : "Failed to fetch report data"))
       .finally(() => {
         setLoading(false);
@@ -58,17 +59,17 @@ export default function Reports() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           title="Total Collected"
-          value={`₹${totalRevenue.toFixed(2)}`}
+          value={formatCurrency(totalRevenue)}
           icon={<span className="font-bold text-slate-700">₹</span>}
         />
         <StatCard
           title="UPI Payments"
-          value={`₹${totalUPI.toFixed(2)}`}
+          value={formatCurrency(totalUPI)}
           icon={<span className="font-bold text-blue-600">₹</span>}
         />
         <StatCard
           title="Cash Payments"
-          value={`₹${totalCash.toFixed(2)}`}
+          value={formatCurrency(totalCash)}
           icon={<span className="font-bold text-green-600">₹</span>}
         />
       </div>
@@ -97,7 +98,7 @@ export default function Reports() {
                       ))}
                     </Pie>
                     <RechartsTooltip 
-                      formatter={(value: any) => [`₹${Number(value).toFixed(2)}`, 'Amount']}
+                      formatter={(value: any) => [formatCurrency(Number(value)), 'Amount']}
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
                     <Legend verticalAlign="bottom" height={36} />

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getBills, Bill, PaymentMethod } from "@/lib/bills";
+import { billDateKey, getBills, Bill, PaymentMethod, sortBillsNewestFirst } from "@/lib/bills";
+import { isGstBill } from "@/lib/gst";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/Card";
@@ -20,12 +21,23 @@ export default function BillsList() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [methodFilter, setMethodFilter] = useState<PaymentMethod | "All">("All");
+  const [dateFilter, setDateFilter] = useState("");
 
   useEffect(() => {
+    const newBillReceipt = typeof window === "undefined"
+      ? null
+      : new URLSearchParams(window.location.search).get("newBill");
     getBills()
-      .then(b => {
-        setBills(b);
-        setFilteredBills(b);
+      .then(allBills => {
+        const b = allBills.filter(bill => !isGstBill(bill));
+        const sortedBills = sortBillsNewestFirst(b);
+        const savedBillIndex = newBillReceipt ? sortedBills.findIndex(bill => bill.receiptNumber === newBillReceipt) : -1;
+        if (savedBillIndex > 0) {
+          const [savedBill] = sortedBills.splice(savedBillIndex, 1);
+          sortedBills.unshift(savedBill);
+        }
+        setBills(sortedBills);
+        setFilteredBills(sortedBills);
       })
       .catch(error => setError(error instanceof Error ? error.message : "Failed to fetch bills"))
       .finally(() => {
@@ -39,15 +51,19 @@ export default function BillsList() {
     if (methodFilter !== "All") {
       result = result.filter(b => b.paymentMethod === methodFilter);
     }
+    if (dateFilter) {
+      result = result.filter(b => billDateKey(b.date) === dateFilter);
+    }
     if (searchTerm) {
       const lower = searchTerm.toLowerCase();
       result = result.filter(b => 
-        b.customerName.toLowerCase().includes(lower) || 
+        b.customerName.toLowerCase().includes(lower) ||
+        b.customerPhone.toLowerCase().includes(lower) ||
         b.receiptNumber.toLowerCase().includes(lower)
       );
     }
     setFilteredBills(result);
-  }, [searchTerm, methodFilter, bills]);
+  }, [searchTerm, methodFilter, dateFilter, bills]);
 
   if (!mounted || loading) return <Loading text="Loading bills from Google Sheets..." />;
   if (error) return <EmptyState title="Unable to load bills" description={error} />;
@@ -69,8 +85,10 @@ export default function BillsList() {
           onSearchChange={setSearchTerm}
           methodFilter={methodFilter}
           onMethodFilterChange={setMethodFilter}
+          dateFilter={dateFilter}
+          onDateFilterChange={setDateFilter}
         />
-        <BillTable bills={filteredBills} currencySymbol="₹" />
+        <BillTable bills={filteredBills} />
       </Card>
     </div>
   );

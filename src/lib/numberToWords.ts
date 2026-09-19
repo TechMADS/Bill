@@ -1,5 +1,5 @@
 export function numberToWords(amount: number): string {
-  if (amount === 0) return 'Rupees Zero Only';
+  if (amount === 0) return 'Zero Rupees Only';
 
   const rupees = Math.floor(amount);
   const paise = Math.round((amount - rupees) * 100);
@@ -21,7 +21,7 @@ export function numberToWords(amount: number): string {
   };
 
   const rupeesText = convertWholeNumber(rupees);
-  let result = `Rupees ${rupeesText}`;
+  let result = `${rupeesText} Rupees`;
 
   if (paise > 0) {
     const paiseText = convertWholeNumber(paise);

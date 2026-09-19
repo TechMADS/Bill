@@ -22,7 +22,7 @@ const navItems = [
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
-export default function Sidebar({ onClose }: { onClose?: () => void }) {
+export default function Sidebar({ shopName, onClose }: { shopName: string; onClose?: () => void }) {
   const pathname = usePathname();
 
   return (
@@ -32,7 +32,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
             <FileText className="h-5 w-5" />
           </div>
-          TG Billing
+          {shopName}
         </div>
         {onClose && (
           <button
@@ -67,9 +67,9 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         </nav>
       </div>
       <div className="border-t p-4 pb-6 mt-auto">
-        <h3 className="font-bold text-slate-800 text-sm">BillingPro</h3>
+        <h3 className="font-bold text-slate-800 text-sm">{shopName}</h3>
         <p className="text-xs text-slate-500">Cash Receipt Management</p>
-        <p className="text-[10px] text-slate-400 font-medium mt-2 uppercase tracking-wider"> Version 1.0</p>
+        <p className="text-[10px] text-slate-400 font-medium mt-2 uppercase tracking-wider">Demo Version 1.0</p>
       </div>
     </div>
   );

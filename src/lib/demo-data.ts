@@ -22,12 +22,12 @@ export const loadDemoData = () => {
     {
       id: uuidv4(), receiptNumber: "REC-000002", date: format(subDays(new Date(), 5), "yyyy-MM-dd"),
       customerName: "Michael Chang", customerPhone: "5432109876", paymentReceivedBy: "Admin", amount: 5000,
-      paymentMethod: "UPI", upiTransactionId: "UPI987654321", amountInWords: numberToWords(5000), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      paymentMethod: "UPI", amountInWords: numberToWords(5000), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
     },
     {
       id: uuidv4(), receiptNumber: "REC-000003", date: format(subDays(new Date(), 4), "yyyy-MM-dd"),
       customerName: "Sarah Jenkins", customerPhone: "7654321098", paymentReceivedBy: "Admin", amount: 5500,
-      paymentMethod: "UPI", upiTransactionId: "UPI876543210", amountInWords: numberToWords(5500), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      paymentMethod: "UPI", amountInWords: numberToWords(5500), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
     },
     {
       id: uuidv4(), receiptNumber: "REC-000004", date: format(subDays(new Date(), 3), "yyyy-MM-dd"),
@@ -37,12 +37,12 @@ export const loadDemoData = () => {
     {
       id: uuidv4(), receiptNumber: "REC-000005", date: format(subDays(new Date(), 2), "yyyy-MM-dd"),
       customerName: "Tech Solutions Inc", customerPhone: "9876543210", paymentReceivedBy: "Admin", amount: 10000,
-      paymentMethod: "UPI", upiTransactionId: "UPI765432109", amountInWords: numberToWords(10000), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      paymentMethod: "UPI", amountInWords: numberToWords(10000), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
     },
     {
       id: uuidv4(), receiptNumber: "REC-000006", date: format(subDays(new Date(), 2), "yyyy-MM-dd"),
       customerName: "Global Exports", customerPhone: "8765432109", paymentReceivedBy: "Admin", amount: 8000,
-      paymentMethod: "UPI", upiTransactionId: "UPI654321098", amountInWords: numberToWords(8000), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      paymentMethod: "UPI", amountInWords: numberToWords(8000), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
     },
     {
       id: uuidv4(), receiptNumber: "REC-000007", date: format(subDays(new Date(), 1), "yyyy-MM-dd"),
@@ -57,12 +57,12 @@ export const loadDemoData = () => {
     {
       id: uuidv4(), receiptNumber: "REC-000009", date: format(new Date(), "yyyy-MM-dd"),
       customerName: "Pioneer Group", customerPhone: "6543210987", paymentReceivedBy: "Admin", amount: 10000,
-      paymentMethod: "UPI", upiTransactionId: "UPI543210987", amountInWords: numberToWords(10000), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      paymentMethod: "UPI", amountInWords: numberToWords(10000), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
     },
     {
       id: uuidv4(), receiptNumber: "REC-000010", date: format(new Date(), "yyyy-MM-dd"),
       customerName: "Tech Solutions Inc", customerPhone: "9876543210", paymentReceivedBy: "Admin", amount: 20000,
-      paymentMethod: "UPI", upiTransactionId: "UPI432109876", amountInWords: numberToWords(20000), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      paymentMethod: "UPI", amountInWords: numberToWords(20000), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
     }
   ];
 
