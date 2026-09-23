@@ -25,13 +25,13 @@ export default function CreateBill() {
   
   const [amount, setAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Cash");
-  const [paymentReceivedBy, setPaymentReceivedBy] = useState("");
+  const [paymentReceivedBy, setPaymentReceivedBy] = useState("Admin");
   const [amountInWords, setAmountInWords] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const s = getSettings();
-    setPaymentReceivedBy(s.defaultReceiverName);
+    setPaymentReceivedBy(s.defaultReceiverName || "Admin");
     setMounted(true);
   }, []);
 
@@ -68,7 +68,7 @@ export default function CreateBill() {
       "Date": date,
       "Customer Name": customerName,
       "Phone Number": customerPhone,
-      "Received By": paymentReceivedBy,
+      "Received By": paymentReceivedBy || "Admin",
       "Amount": String(amount),
       "Payment Method": paymentMethod,
       "Amount in Words": amountInWords,
@@ -96,12 +96,12 @@ export default function CreateBill() {
       <PageHeader 
         title="Create Receipt" 
         action={
-          <div className="flex items-center gap-3">
-            <Button onClick={handleSave} disabled={isSaving} icon={isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}>
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
+            <Button className="flex-1 sm:flex-none" onClick={handleSave} disabled={isSaving} icon={isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}>
               {isSaving ? "Saving..." : "Save & Generate"}
             </Button>
             <Link href="/create-gst-bill">
-              <Button type="button" variant="secondary" icon={<FileText className="h-4 w-4" />}>
+              <Button className="flex-1 sm:flex-none" type="button" variant="secondary" icon={<FileText className="h-4 w-4" />}>
                 GST BILL
               </Button>
             </Link>

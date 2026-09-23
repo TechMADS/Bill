@@ -14,8 +14,9 @@ export const calculateUPIRevenue = (bills: Bill[]): number => {
 };
 
 export const calculateAverageBillValue = (bills: Bill[]): number => {
-  if (bills.length === 0) return 0;
-  return calculateTotalRevenue(bills) / bills.length;
+  const validBills = bills.filter(bill => bill.amountValid !== false);
+  if (validBills.length === 0) return 0;
+  return calculateTotalRevenue(validBills) / validBills.length;
 };
 
 export const calculateDailyRevenue = (bills: Bill[], dateStr: string): number => {

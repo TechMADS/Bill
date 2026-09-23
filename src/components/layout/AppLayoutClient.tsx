@@ -24,17 +24,17 @@ export function AppLayoutClient({ children, shopName }: { children: React.ReactN
       </div>
 
       <div className="flex-1 flex flex-col w-full min-w-0">
-        <div className="lg:hidden flex items-center p-4 bg-white border-b">
+        <div className="lg:hidden flex min-w-0 items-center gap-2 p-3 sm:p-4 bg-white border-b">
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg"
           >
             <Menu className="h-6 w-6" />
           </button>
-          <span className="ml-4 font-bold text-slate-800">{shopName}</span>
+          <span className="min-w-0 truncate font-bold text-slate-800">{shopName}</span>
         </div>
         <Header />
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <main className="min-w-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-8">
           {children}
         </main>
       </div>

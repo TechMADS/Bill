@@ -1,5 +1,5 @@
 import React from "react";
-import { Bill } from "@/lib/bills";
+import { Bill, formatBillDate } from "@/lib/bills";
 import { Card, CardHeader, CardContent } from "../ui/Card";
 import { Badge } from "../ui/Badge";
 import { formatCurrency } from "@/lib/numberToWords";
@@ -19,6 +19,7 @@ export function RecentBills({ bills }: RecentBillsProps) {
               <div>
                 <p className="text-sm font-medium text-slate-800">{bill.customerName}</p>
                 <p className="text-xs text-slate-500">Receipt {bill.receiptNumber}</p>
+                <p className="text-xs text-slate-500">{formatBillDate(bill.date)}</p>
               </div>
               <div className="text-right flex flex-col items-end gap-1">
                 <p className="text-sm font-bold text-slate-800">{formatCurrency(bill.amount)}</p>

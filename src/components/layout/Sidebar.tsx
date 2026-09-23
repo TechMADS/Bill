@@ -32,7 +32,7 @@ export default function Sidebar({ shopName, onClose }: { shopName: string; onClo
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
             <FileText className="h-5 w-5" />
           </div>
-          {shopName}
+          <span className="min-w-0 truncate">{shopName}</span>
         </div>
         {onClose && (
           <button

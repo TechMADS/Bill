@@ -13,7 +13,7 @@ interface BillTableProps {
 export function BillTable({ bills }: BillTableProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm">
+      <table className="min-w-[680px] w-full text-left text-sm">
         <thead className="bg-white text-slate-600 border-b">
           <tr>
             <th className="px-6 py-4 font-semibold">Receipt No.</th>

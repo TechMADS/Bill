@@ -1,3 +1,5 @@
+import { getAuthenticatedShopId } from "@/lib/auth";
+
 export type PaymentMethod = "Cash" | "UPI";
 
 export type BillFields = Record<string, string>;
@@ -15,6 +17,7 @@ export interface Bill {
   amountInWords: string;
   createdAt: string;
   updatedAt: string;
+  amountValid?: boolean;
   fields?: BillFields;
 }
 
@@ -49,6 +52,16 @@ const sourceValueFor = (source: Record<string, unknown>, fields: BillFields, nam
   return sourceKey ? String(source[sourceKey] ?? "") : valueFor(fields, names);
 };
 
+const parseAmount = (value: unknown): { value: number; valid: boolean } => {
+  if (typeof value === "number") return Number.isFinite(value) ? { value, valid: true } : { value: 0, valid: false };
+  const text = String(value ?? "").trim();
+  if (!text) return { value: 0, valid: false };
+
+  const normalized = text.replace(/[₹,\s]/g, "").replace(/^\((.*)\)$/, "-$1");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? { value: parsed, valid: true } : { value: 0, valid: false };
+};
+
 const responseRecords = (data: unknown): unknown[] => {
   if (Array.isArray(data)) return data;
   if (data && typeof data === "object") {
@@ -75,19 +88,21 @@ const toBill = (record: unknown, index: number): Bill => {
   const fields: BillFields = Object.fromEntries(
     Object.entries(rawFields).map(([key, value]) => [key, String(value ?? "")])
   );
-  const amountText = sourceValueFor(source, fields, ["amount", "amount (₹)"]);
+  const amountText = sourceValueFor(source, fields, ["amount", "amount (₹)", "total amount", "bill amount", "price"]);
+  const parsedAmount = parseAmount(amountText);
   const rowNumber = Number(source.__rowNumber ?? source.rowNumber ?? source.row ?? index + 2);
 
   return {
     id: String(source.id ?? source.billId ?? source.billID ?? rowNumber),
     rowNumber: Number.isFinite(rowNumber) ? rowNumber : undefined,
-    receiptNumber: sourceValueFor(source, fields, ["receipt number", "invoice number"]),
-    date: sourceValueFor(source, fields, ["date"]),
-    customerName: sourceValueFor(source, fields, ["customer name"]),
-    customerPhone: sourceValueFor(source, fields, ["phone number", "phone", "customer number"]),
+    receiptNumber: sourceValueFor(source, fields, ["receipt number", "receipt no", "receipt id", "invoice number", "invoice no"]),
+    date: sourceValueFor(source, fields, ["date", "bill date", "invoice date"]),
+    customerName: sourceValueFor(source, fields, ["customer name", "customer"]),
+    customerPhone: sourceValueFor(source, fields, ["phone number", "phone", "customer number", "customer phone"]),
     paymentReceivedBy: sourceValueFor(source, fields, ["received by", "payment received by"]),
-    amount: Number(amountText) || 0,
-    paymentMethod: sourceValueFor(source, fields, ["payment method"]) as PaymentMethod,
+    amount: parsedAmount.value,
+    amountValid: parsedAmount.valid,
+    paymentMethod: sourceValueFor(source, fields, ["payment method", "payment mode", "mode"]).trim().toLowerCase() === "upi" ? "UPI" : "Cash",
     amountInWords: sourceValueFor(source, fields, ["amount in words"]),
     createdAt: sourceValueFor(source, fields, ["createdat", "created at", "created_at"]),
     updatedAt: sourceValueFor(source, fields, ["updatedat", "updated at", "updated_at"]),
@@ -95,16 +110,30 @@ const toBill = (record: unknown, index: number): Bill => {
   };
 };
 
+const requireAuthenticatedShopId = (): string => {
+  const shopId = getAuthenticatedShopId();
+  if (!shopId) {
+    throw new Error("No authenticated shop is available for this request.");
+  }
+  return shopId;
+};
+
 export const getBills = async (): Promise<Bill[]> => {
-  const data = await readResponse(await fetch("/api/bills", { cache: "no-store" }));
+  requireAuthenticatedShopId();
+  const data = await readResponse(await fetch("/api/bills", {
+    cache: "no-store",
+    credentials: "include",
+  }));
   return responseRecords(data).map(toBill);
 };
 
 export const createBill = async (input: CreateBillInput): Promise<Bill> => {
+  requireAuthenticatedShopId();
   const fields = input.fields;
   const data = await readResponse(await fetch("/api/bills", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ fields }),
   }));
   const records = responseRecords(data);
@@ -153,6 +182,13 @@ export const billDateKey = (date: string): string => {
     : `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
 };
 
+export const formatBillDate = (date: string): string => {
+  const key = billDateKey(date);
+  if (!key) return "";
+  const [year, month, day] = key.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(year, month - 1, day));
+};
+
 export const billCreatedAt = (bill: Bill): number => {
   const createdAt = Date.parse(bill.createdAt);
   return Number.isNaN(createdAt) ? (bill.rowNumber ?? 0) : createdAt;
@@ -162,17 +198,21 @@ export const sortBillsNewestFirst = (bills: Bill[]): Bill[] =>
   [...bills].sort((a, b) => billCreatedAt(b) - billCreatedAt(a));
 
 export const updateBill = async (rowNumber: number, fields: BillFields): Promise<void> => {
+  requireAuthenticatedShopId();
   await readResponse(await fetch("/api/bills", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ rowNumber, fields }),
   }));
 };
 
 export const deleteBill = async (rowNumber: number): Promise<void> => {
+  requireAuthenticatedShopId();
   await readResponse(await fetch("/api/bills", {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: JSON.stringify({ rowNumber }),
   }));
 };

@@ -88,14 +88,14 @@ export default function BillDetails() {
           <h1 className="text-2xl font-bold text-slate-800">Receipt {bill.receiptNumber}</h1>
         </div>
         
-        <div className="flex items-center gap-3">
-          <Button variant="danger" onClick={handleDelete} icon={<Trash2 className="h-4 w-4" />}>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <Button className="flex-1 sm:flex-none" variant="danger" onClick={handleDelete} icon={<Trash2 className="h-4 w-4" />}>
             Delete
           </Button>
-          <Button variant="secondary" onClick={handlePrint} icon={<Printer className="h-4 w-4" />}>
+          <Button className="flex-1 sm:flex-none" variant="secondary" onClick={handlePrint} icon={<Printer className="h-4 w-4" />}>
             Print
           </Button>
-          <Button onClick={handleDownloadPDF} icon={<Download className="h-4 w-4" />}>
+          <Button className="flex-1 sm:flex-none" onClick={handleDownloadPDF} icon={<Download className="h-4 w-4" />}>
             Download PDF
           </Button>
         </div>

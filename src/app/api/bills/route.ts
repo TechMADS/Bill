@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthenticatedShopId } from "@/lib/server-auth";
 
-const getConfiguration = () => {
+const getConfiguration = (request: NextRequest) => {
   const scriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
-  const shopId = process.env.GOOGLE_APPS_SCRIPT_SHOP_ID;
+  const shopId = getAuthenticatedShopId(request);
 
-  if (!scriptUrl || !shopId) {
-    throw new Error("Google Apps Script URL and shop ID are not configured");
+  if (!scriptUrl) {
+    throw new Error("Google Apps Script URL is not configured");
+  }
+
+  if (!shopId) {
+    throw new RequestError(401, "Authentication required");
   }
 
   return { scriptUrl, shopId };
@@ -57,9 +62,9 @@ const handleError = (error: unknown) => {
   return NextResponse.json({ error: message }, { status });
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const { scriptUrl, shopId } = getConfiguration();
+    const { scriptUrl, shopId } = getConfiguration(request);
     const url = new URL(scriptUrl);
     url.searchParams.set("action", "get");
     url.searchParams.set("shopId", shopId);
@@ -73,9 +78,9 @@ export async function GET() {
   }
 }
 
-const forwardMutation = async (request: Request, action: "create" | "update" | "delete") => {
-  const { scriptUrl, shopId } = getConfiguration();
-  const body = await request.json();
+const forwardMutation = async (request: NextRequest, action: "create" | "update" | "delete") => {
+  const body = await request.json().catch(() => null);
+  const { scriptUrl, shopId } = getConfiguration(request);
   if (!body || typeof body !== "object") {
     throw new RequestError(400, "A JSON request body is required");
   }

@@ -118,11 +118,11 @@ export default function CreateGstBill() {
       <PageHeader
         title="Create GST Bill"
         action={
-          <div className="flex items-center gap-3">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
             <Link href="/create-bill">
-              <Button type="button" variant="secondary" icon={<ArrowLeft className="h-4 w-4" />}>Normal Bill</Button>
+              <Button className="flex-1 sm:flex-none" type="button" variant="secondary" icon={<ArrowLeft className="h-4 w-4" />}>Normal Bill</Button>
             </Link>
-            <Button onClick={handleSave} disabled={isSaving} icon={isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}>
+            <Button className="flex-1 sm:flex-none" onClick={handleSave} disabled={isSaving} icon={isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}>
               {isSaving ? "Saving..." : "Save GST Bill"}
             </Button>
           </div>
@@ -170,7 +170,7 @@ export default function CreateGstBill() {
         <CardContent className="space-y-4">
           {items.map((item, index) => (
             <div key={item.id} className="rounded-lg border border-slate-200 p-4">
-              <div className="mb-3 flex items-center justify-between">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm font-semibold text-slate-700">Item {index + 1}</p>
                 {items.length > 1 && <Button type="button" size="sm" variant="danger" onClick={() => setItems(current => current.filter(entry => entry.id !== item.id))} icon={<Trash2 className="h-4 w-4" />}>Remove</Button>}
               </div>

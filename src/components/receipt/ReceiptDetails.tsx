@@ -10,7 +10,7 @@ interface ReceiptDetailsProps {
 export function ReceiptDetails({ bill }: ReceiptDetailsProps) {
   return (
     <div className="space-y-8 mb-12">
-      <div className="grid grid-cols-2 gap-8 text-sm">
+      <div className="grid grid-cols-1 gap-6 text-sm sm:grid-cols-2 sm:gap-8">
         <div className="space-y-4">
           <div>
             <h3 className="font-bold text-slate-400 uppercase tracking-wider mb-1 text-xs">Receipt No</h3>
@@ -23,7 +23,7 @@ export function ReceiptDetails({ bill }: ReceiptDetailsProps) {
           </div>
         </div>
 
-        <div className="space-y-4 text-right">
+        <div className="space-y-4 text-left sm:text-right">
           <div>
             <h3 className="font-bold text-slate-400 uppercase tracking-wider mb-1 text-xs">Date</h3>
             <p className="font-semibold text-slate-800 text-lg">{format(new Date(bill.date), 'MMM dd, yyyy')}</p>
@@ -36,7 +36,7 @@ export function ReceiptDetails({ bill }: ReceiptDetailsProps) {
       </div>
 
       <div className="bg-slate-50 p-6 rounded-lg border border-slate-100">
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <div>
             <span className="text-slate-500 block mb-1">Amount in Words</span>
             <span className="font-medium text-slate-800 italic">{bill.amountInWords}</span>

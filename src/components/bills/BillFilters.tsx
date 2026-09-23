@@ -24,7 +24,7 @@ export function BillFilters({ searchTerm, onSearchChange, methodFilter, onMethod
           className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
         />
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Filter className="h-4 w-4 text-slate-500" />
         <input
           type="date"
