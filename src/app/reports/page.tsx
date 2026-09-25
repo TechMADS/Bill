@@ -36,7 +36,7 @@ export default function Reports() {
       });
   }, []);
 
-  if (!mounted || loading) return <Loading text="Loading reports from Google Sheets..." />;
+  if (!mounted || loading) return <Loading text="Loading reports page..." />;
   if (error) return <EmptyState title="Unable to load reports" description={error} />;
 
   const totalRevenue = calculateTotalRevenue(bills);

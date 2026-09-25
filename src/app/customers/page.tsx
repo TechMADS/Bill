@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { deriveCustomers, Customer } from "@/lib/customers";
 import { getBills } from "@/lib/bills";
+import { getAuthenticatedShopId } from "@/lib/auth";
 import { isGstBill } from "@/lib/gst";
 import { Search } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -18,11 +19,27 @@ export default function CustomersList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [shopId, setShopId] = useState("");
 
   useEffect(() => {
+    const updateShopId = () => setShopId(getAuthenticatedShopId());
+    updateShopId();
+    window.addEventListener("auth:changed", updateShopId);
+    return () => window.removeEventListener("auth:changed", updateShopId);
+  }, []);
+
+  useEffect(() => {
+    if (!shopId) return;
+
+    setLoading(true);
+    setError("");
+    setCustomers([]);
+    setFilteredCustomers([]);
+
     getBills()
       .then(bills => {
-        const derived = deriveCustomers(bills.filter(bill => !isGstBill(bill)));
+        const actualBills = bills.filter(bill => !isGstBill(bill));
+        const derived = actualBills.length === 0 ? [] : deriveCustomers(actualBills);
         setCustomers(derived);
         setFilteredCustomers(derived);
       })
@@ -31,7 +48,7 @@ export default function CustomersList() {
         setLoading(false);
         setMounted(true);
       });
-  }, []);
+  }, [shopId]);
 
   useEffect(() => {
     if (searchTerm) {
@@ -45,7 +62,7 @@ export default function CustomersList() {
     }
   }, [searchTerm, customers]);
 
-  if (!mounted || loading) return <Loading text="Loading customers from Google Sheets..." />;
+  if (!mounted || loading) return <Loading text="Loading customers page..." />;
   if (error) return <EmptyState title="Unable to load customers" description={error} />;
 
   return (

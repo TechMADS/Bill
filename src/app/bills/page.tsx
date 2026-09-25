@@ -65,7 +65,7 @@ export default function BillsList() {
     setFilteredBills(result);
   }, [searchTerm, methodFilter, dateFilter, bills]);
 
-  if (!mounted || loading) return <Loading text="Loading bills from Google Sheets..." />;
+  if (!mounted || loading) return <Loading text="Loading bills History page..." />;
   if (error) return <EmptyState title="Unable to load bills" description={error} />;
 
   return (

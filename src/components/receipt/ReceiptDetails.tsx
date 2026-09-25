@@ -47,6 +47,12 @@ export function ReceiptDetails({ bill }: ReceiptDetailsProps) {
               {bill.paymentMethod}
             </div>
           </div>
+          <div>
+            <span className="text-slate-500 block mb-1">Payment Received By Number</span>
+            <div className="font-medium text-slate-800">
+              {bill.paymentReceivedBy}
+            </div>
+          </div>
         </div>
       </div>
     </div>
