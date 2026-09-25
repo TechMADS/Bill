@@ -33,7 +33,9 @@ export default function Settings() {
       .finally(() => setMounted(true));
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return <p className="text-sm text-slate-600">Loading business profile...</p>;
+  }
 
   if (!settings) {
     return (
@@ -43,35 +45,20 @@ export default function Settings() {
     );
   }
 
-  const handleChange = (
-    field: keyof BusinessSettings,
-    value: string
-  ) => {
-    setSettings({
-      ...settings,
-      [field]: value,
-    });
+  const handleChange = (field: keyof BusinessSettings, value: string) => {
+    setSettings({ ...settings, [field]: value });
   };
 
   const handleSave = async () => {
     setSaving(true);
     setError("");
-
     try {
       const saved = await saveAuthenticatedSettings(settings);
-
       setSettings(saved);
       setSaveStatus("Settings saved successfully!");
-
-      setTimeout(() => {
-        setSaveStatus("");
-      }, 3000);
+      setTimeout(() => setSaveStatus(""), 3000);
     } catch (saveError) {
-      setError(
-        saveError instanceof Error
-          ? saveError.message
-          : "Unable to save settings."
-      );
+      setError(saveError instanceof Error ? saveError.message : "Unable to save settings.");
     } finally {
       setSaving(false);
     }
@@ -82,24 +69,13 @@ export default function Settings() {
       <PageHeader
         title="Settings"
         action={
-          <div className="flex items-center gap-3">
-            <Button
-              className="w-full sm:w-auto"
-              onClick={handleSave}
-              disabled={saving}
-              icon={<Save className="h-4 w-4" />}
-            >
-              {saving ? "Saving..." : "Save Settings"}
-            </Button>
-          </div>
+          <Button onClick={handleSave} disabled={saving} icon={<Save className="h-4 w-4" />}>
+            {saving ? "Saving..." : "Save Settings"}
+          </Button>
         }
       />
 
-      {saveStatus && (
-        <div className="bg-green-50 text-green-700 p-4 rounded-lg border border-green-200 text-sm">
-          {saveStatus}
-        </div>
-      )}
+      {saveStatus && <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700">{saveStatus}</div>}
 
       {error && (
         <div className="bg-red-50 text-red-700 p-4 rounded-lg border border-red-200 text-sm">
@@ -115,17 +91,13 @@ export default function Settings() {
           <Input
             label="Business Name"
             value={settings.businessName}
-            onChange={(e) =>
-              handleChange("businessName", e.target.value)
-            }
+            readOnly
           />
 
           <Input
             label="Owner Name"
             value={settings.ownerName}
-            onChange={(e) =>
-              handleChange("ownerName", e.target.value)
-            }
+            readOnly
           />
 
           <div className="pt-1">
@@ -136,10 +108,8 @@ export default function Settings() {
             <textarea
               rows={3}
               value={settings.address}
-              onChange={(e) =>
-                handleChange("address", e.target.value)
-              }
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+              readOnly
+              className="w-full resize-none rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-700"
             />
           </div>
 
@@ -147,19 +117,18 @@ export default function Settings() {
             <Input
               label="Phone Number"
               value={settings.phone}
-              onChange={(e) =>
-                handleChange("phone", e.target.value)
-              }
+              readOnly
             />
 
             <Input
               label="GST Number"
               value={settings.gstNumber}
-              onChange={(e) =>
-                handleChange("gstNumber", e.target.value)
-              }
+              readOnly
             />
           </div>
+
+          <Input label="State" value={settings.state} readOnly />
+          <Input label="Shop ID" value={settings.shopId} readOnly />
         </CardContent>
       </Card>
 

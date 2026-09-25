@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { FileText, Loader2, Save } from "lucide-react";
 import { createBill, getNextReceiptNumber, PaymentMethod } from "@/lib/bills";
-import { getSettings } from "@/lib/settings";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { numberToWords } from "@/lib/numberToWords";
@@ -25,13 +24,10 @@ export default function CreateBill() {
   
   const [amount, setAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Cash");
-  const [paymentReceivedBy, setPaymentReceivedBy] = useState("Admin");
   const [amountInWords, setAmountInWords] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    const s = getSettings();
-    setPaymentReceivedBy(s.defaultReceiverName || "Admin");
     setMounted(true);
   }, []);
 
@@ -68,7 +64,7 @@ export default function CreateBill() {
       "Date": date,
       "Customer Name": customerName,
       "Customer Phone": customerPhone,
-      "Payment Received By Number": paymentReceivedBy || "Admin",
+      "Payment Received By Number": "Admin",
       "Amount": String(amount),
       "Payment Method": paymentMethod,
       "Amount in Words": amountInWords,
@@ -125,9 +121,9 @@ export default function CreateBill() {
               onChange={e => setDate(e.target.value)} 
             />
             <Input 
-              label="Received By" 
-              value={paymentReceivedBy} 
-              onChange={e => setPaymentReceivedBy(e.target.value)} 
+              label="Payment Received By Number" 
+              value="Admin"
+              readOnly
             />
           </CardContent>
         </Card>

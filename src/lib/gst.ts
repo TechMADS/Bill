@@ -50,7 +50,7 @@ export const calculateGstTotals = (items: GstItem[], mode: GstMode): GstTotals =
 
 export const gstField = (bill: Bill, names: string[]): string => sourceFieldValue(bill.fields ?? {}, names);
 
-export const isGstBill = (bill: Bill): boolean => gstField(bill, ["Document Type", "Bill Type"]).toUpperCase() === "GST";
+export const isGstBill = (bill: Bill): boolean => gstField(bill, ["Bill Type"]).toUpperCase() === "GST";
 
 export const gstFields = (input: {
   supplierName: string;
@@ -58,17 +58,16 @@ export const gstFields = (input: {
   receiptNumber: string;
   date: string;
   customerName: string;
+  customerPhone: string;
   customerAddress: string;
-  customerGstin: string;
   placeOfSupply: string;
-  reverseCharge: boolean;
   paymentMethod: string;
+  paymentReceivedByNumber: string;
   items: GstItemTotals[];
   totals: GstTotals;
   amountInWords: string;
   createdAt: string;
 }): BillFields => ({
-  "Document Type": "GST",
   "Bill Type": "GST",
   "Receipt Number": input.receiptNumber,
   "Supplier Name": input.supplierName,
@@ -76,11 +75,11 @@ export const gstFields = (input: {
   "Invoice Date": input.date,
   "Date": input.date,
   "Customer Name": input.customerName,
+  "Customer Phone": input.customerPhone,
   "Customer Address": input.customerAddress,
-  "Customer GSTIN": input.customerGstin,
   "Place of Supply": input.placeOfSupply,
-  "Reverse Charge": input.reverseCharge ? "Yes" : "No",
   "Payment Method": input.paymentMethod,
+  "Payment Received By Number": input.paymentReceivedByNumber,
   "Items": JSON.stringify(input.items),
   "Total Taxable Value": input.totals.taxableValue.toFixed(2),
   "CGST": input.totals.cgst.toFixed(2),

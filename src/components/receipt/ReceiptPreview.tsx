@@ -16,11 +16,11 @@ export const ReceiptPreview = forwardRef<HTMLDivElement, ReceiptPreviewProps>(
       <div className="print-receipt bg-slate-200 p-2 sm:p-4 md:p-8 rounded-xl flex justify-center print:bg-white print:p-0 w-full overflow-x-auto">
         <div 
           ref={ref} 
-          className="bg-white w-full min-w-0 max-w-[800px] shadow-lg print:shadow-none p-4 sm:p-8 md:p-14 text-slate-800 flex flex-col"
+            className="bg-white w-full min-w-0 max-w-[800px] shadow-lg print:shadow-none p-5 sm:p-10 md:p-14 text-slate-800 flex flex-col border-t-8 border-blue-700"
           style={{ minHeight: "800px" }}
         >
           <ReceiptHeader settings={settings} />
-          <ReceiptDetails bill={bill} />
+            <ReceiptDetails bill={bill} settings={settings} />
           <ReceiptFooter bill={bill} />
         </div>
       </div>

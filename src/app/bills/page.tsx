@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { billDateKey, getBills, Bill, PaymentMethod, sortBillsNewestFirst } from "@/lib/bills";
+import { useRouter } from "next/navigation";
+import { billDateKey, deleteBill, getBills, Bill, PaymentMethod, sortBillsNewestFirst } from "@/lib/bills";
 import { isGstBill } from "@/lib/gst";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -11,8 +12,10 @@ import { BillTable } from "@/components/bills/BillTable";
 import { BillFilters } from "@/components/bills/BillFilters";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Loading } from "@/components/ui/Loading";
+import { Modal } from "@/components/ui/Modal";
 
 export default function BillsList() {
+  const router = useRouter();
   const [bills, setBills] = useState<Bill[]>([]);
   const [filteredBills, setFilteredBills] = useState<Bill[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -22,6 +25,14 @@ export default function BillsList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [methodFilter, setMethodFilter] = useState<PaymentMethod | "All">("All");
   const [dateFilter, setDateFilter] = useState("");
+  const [billToDelete, setBillToDelete] = useState<Bill | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  const refreshBills = async () => {
+    const allBills = await getBills();
+    setBills(sortBillsNewestFirst(allBills));
+  };
 
   useEffect(() => {
     const newBillReceipt = typeof window === "undefined"
@@ -29,8 +40,7 @@ export default function BillsList() {
       : new URLSearchParams(window.location.search).get("newBill");
     getBills()
       .then(allBills => {
-        const b = allBills.filter(bill => !isGstBill(bill));
-        const sortedBills = sortBillsNewestFirst(b);
+        const sortedBills = sortBillsNewestFirst(allBills);
         const savedBillIndex = newBillReceipt ? sortedBills.findIndex(bill => bill.receiptNumber === newBillReceipt) : -1;
         if (savedBillIndex > 0) {
           const [savedBill] = sortedBills.splice(savedBillIndex, 1);
@@ -38,13 +48,33 @@ export default function BillsList() {
         }
         setBills(sortedBills);
         setFilteredBills(sortedBills);
+        const savedBill = newBillReceipt ? sortedBills.find(bill => bill.receiptNumber === newBillReceipt) : null;
+        if (savedBill && isGstBill(savedBill)) {
+          router.push(`/gst-bills/${encodeURIComponent(savedBill.id)}`);
+        }
       })
       .catch(error => setError(error instanceof Error ? error.message : "Failed to fetch bills"))
       .finally(() => {
         setLoading(false);
         setMounted(true);
       });
-  }, []);
+  }, [router]);
+
+  const handleDelete = async () => {
+    if (!billToDelete?.rowNumber || isDeleting) return;
+
+    setIsDeleting(true);
+    setDeleteError("");
+    try {
+      await deleteBill(billToDelete.rowNumber);
+      setBillToDelete(null);
+      await refreshBills();
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : "Failed to delete bill");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     let result = bills;
@@ -88,8 +118,35 @@ export default function BillsList() {
           dateFilter={dateFilter}
           onDateFilterChange={setDateFilter}
         />
-        <BillTable bills={filteredBills} />
+        <BillTable bills={filteredBills} onDelete={(bill) => {
+          setDeleteError("");
+          setBillToDelete(bill);
+        }} />
       </Card>
+
+      <Modal
+        isOpen={billToDelete !== null}
+        onClose={() => {
+          if (!isDeleting) {
+            setDeleteError("");
+            setBillToDelete(null);
+          }
+        }}
+        title="Delete Bill?"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setBillToDelete(null)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDelete} disabled={isDeleting || !billToDelete?.rowNumber}>
+              {isDeleting ? "Deleting..." : "Confirm Delete"}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-slate-600">Are you sure you want to delete this bill? This action cannot be undone.</p>
+        {deleteError && <p className="mt-4 text-sm text-red-600" role="alert">{deleteError}</p>}
+      </Modal>
     </div>
   );
 }

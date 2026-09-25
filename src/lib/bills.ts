@@ -25,6 +25,29 @@ export interface CreateBillInput {
   fields: BillFields;
 }
 
+const BILL_NAVIGATION_CACHE_KEY = "billing_selected_bill";
+
+export const cacheBillForNavigation = (bill: Bill): void => {
+  if (typeof window !== "undefined") {
+    window.sessionStorage.setItem(BILL_NAVIGATION_CACHE_KEY, JSON.stringify(bill));
+  }
+};
+
+export const consumeCachedBill = (id: string): Bill | null => {
+  if (typeof window === "undefined") return null;
+
+  const cached = window.sessionStorage.getItem(BILL_NAVIGATION_CACHE_KEY);
+  window.sessionStorage.removeItem(BILL_NAVIGATION_CACHE_KEY);
+  if (!cached) return null;
+
+  try {
+    const bill = JSON.parse(cached) as Bill;
+    return bill.id === id || bill.receiptNumber === id ? bill : null;
+  } catch {
+    return null;
+  }
+};
+
 const readResponse = async (response: Response): Promise<unknown> => {
   const data: unknown = await response.json().catch(() => null);
   if (!response.ok) {
@@ -99,7 +122,7 @@ const toBill = (record: unknown, index: number): Bill => {
     date: sourceValueFor(source, fields, ["date", "bill date", "invoice date"]),
     customerName: sourceValueFor(source, fields, ["customer name", "customer"]),
     customerPhone: sourceValueFor(source, fields, ["customer phone", "phone number", "phone", "customer number"]),
-    paymentReceivedBy: sourceValueFor(source, fields, ["payment received by number", "received by", "payment received by"]),
+    paymentReceivedBy: sourceValueFor(source, fields, ["payment received by number"]),
     amount: parsedAmount.value,
     amountValid: parsedAmount.valid,
     paymentMethod: sourceValueFor(source, fields, ["payment method", "payment mode", "mode"]).trim().toLowerCase() === "upi" ? "UPI" : "Cash",
@@ -139,9 +162,16 @@ export const createBill = async (input: CreateBillInput): Promise<Bill> => {
   const records = responseRecords(data);
   const result = records[0] ?? data;
   const source = result && typeof result === "object" ? result as Record<string, unknown> : {};
+  const responseRowNumber = Number(
+    source.rowNumber ?? source.row ?? source.__rowNumber ?? (data && typeof data === "object" ? (data as Record<string, unknown>).rowNumber : undefined)
+  );
   const createdBill = {
-    ...toBill({ ...source, fields }, 0),
+    ...toBill({ ...source, fields, __rowNumber: responseRowNumber }, 0),
   };
+  if (Number.isFinite(responseRowNumber) && createdBill.receiptNumber === input.fields["Receipt Number"]) {
+    window.dispatchEvent(new CustomEvent("bill:created", { detail: createdBill }));
+    return createdBill;
+  }
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const savedBills = await getBills();
     const exactMatch = savedBills

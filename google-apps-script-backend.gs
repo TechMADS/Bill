@@ -414,6 +414,45 @@ function getBills(shopId) {
   return { success: true, data: records };
 }
 
+function migrateBillHeaders(sheet) {
+  let headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map((header) => String(header || "").trim());
+  const normalize = (value) => String(value || "").trim().toLowerCase();
+  const findHeader = (name) => headers.findIndex((header) => normalize(header) === normalize(name));
+
+  const legacyReceiverIndex = findHeader("Payment Received By");
+  const receiverIndex = findHeader("Payment Received By Number");
+  if (legacyReceiverIndex !== -1) {
+    if (receiverIndex === -1) {
+      sheet.getRange(1, legacyReceiverIndex + 1).setValue("Payment Received By Number");
+      headers[legacyReceiverIndex] = "Payment Received By Number";
+    } else {
+      const lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        const legacyValues = sheet.getRange(2, legacyReceiverIndex + 1, lastRow - 1, 1).getValues();
+        const receiverValues = sheet.getRange(2, receiverIndex + 1, lastRow - 1, 1).getValues();
+        const mergedValues = receiverValues.map((row, index) => [row[0] || legacyValues[index][0] || ""]);
+        sheet.getRange(2, receiverIndex + 1, mergedValues.length, 1).setValues(mergedValues);
+      }
+      sheet.deleteColumn(legacyReceiverIndex + 1);
+      headers.splice(legacyReceiverIndex, 1);
+    }
+  }
+
+  const documentTypeIndex = findHeader("Document Type");
+  const billTypeIndex = findHeader("Bill Type");
+  if (documentTypeIndex !== -1) {
+    if (billTypeIndex === -1) {
+      sheet.getRange(1, documentTypeIndex + 1).setValue("Bill Type");
+      headers[documentTypeIndex] = "Bill Type";
+    } else {
+      sheet.deleteColumn(documentTypeIndex + 1);
+      headers.splice(documentTypeIndex, 1);
+    }
+  }
+
+  return headers;
+}
+
 function createBill(body) {
   const payload = body || {};
   const fields = payload.fields || {};
@@ -423,36 +462,41 @@ function createBill(body) {
   }
 
   const sheet = getShopSheet(shopId);
-  const headers = sheet.getDataRange().getValues();
-  const currentHeaders = headers.length ? headers[0] : [];
-
-  const rowData = [];
+  let currentHeaders = sheet.getLastColumn() > 0 ? migrateBillHeaders(sheet) : [];
   const keys = Object.keys(fields || {});
-  keys.forEach((key) => {
-    rowData.push(fields[key]);
-  });
 
   if (!currentHeaders.length) {
-    sheet.appendRow(["Receipt Number", "Date", "Customer Name", "Amount", ...keys]);
-    sheet.appendRow(rowData);
-    return { success: true, data: rowData };
+    currentHeaders = keys;
+    sheet.getRange(1, 1, 1, currentHeaders.length).setValues([currentHeaders]);
+  } else {
+    const existingHeaders = currentHeaders.map((header) => String(header).toLowerCase());
+    const missingHeaders = keys.filter((key) => !existingHeaders.includes(String(key).toLowerCase()));
+    if (missingHeaders.length) {
+      sheet.getRange(1, currentHeaders.length + 1, 1, missingHeaders.length).setValues([missingHeaders]);
+      currentHeaders = currentHeaders.concat(missingHeaders);
+    }
   }
 
   const headerMap = {};
   currentHeaders.forEach((header, index) => {
-    headerMap[String(header || "").trim()] = index;
+    headerMap[String(header || "").trim().toLowerCase()] = index;
   });
 
   const output = new Array(currentHeaders.length).fill("");
   keys.forEach((key) => {
-    const index = headerMap[key];
+    const index = headerMap[String(key).trim().toLowerCase()];
     if (index !== undefined) {
       output[index] = fields[key];
     }
   });
 
   sheet.appendRow(output);
-  return { success: true, data: output };
+  const rowNumber = sheet.getLastRow();
+  const data = {};
+  currentHeaders.forEach((header, index) => {
+    if (header) data[header] = output[index] ?? "";
+  });
+  return { success: true, data, rowNumber };
 }
 
 function updateBill(body) {

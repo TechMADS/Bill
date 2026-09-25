@@ -3,12 +3,14 @@ import { Bill } from "@/lib/bills";
 
 export function ReceiptFooter({ bill }: { bill: Bill }) {
   return (
-    <div className="border-t border-slate-200 pt-8 mt-auto">
-      <div className="flex justify-between items-end">
-        <div className="text-slate-400 text-xs">
-          <p>Thank you for your business!</p>
-          <p className="mt-1">Generated on {new Date().toLocaleString()}</p>
-        </div>
+    <div className="mt-auto border-t border-blue-100 pt-8">
+      <div className="text-center text-sm text-slate-500">
+        <p className="font-semibold text-slate-700">
+          Thank you for your payment.
+        </p>
+        <p className="mt-1 text-xs">
+          We appreciate your business.
+        </p>
       </div>
     </div>
   );

@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { deleteBill, getBills, Bill } from "@/lib/bills";
+import { consumeCachedBill, deleteBill, getBills, Bill } from "@/lib/bills";
 import { isGstBill } from "@/lib/gst";
-import { getSettings, BusinessSettings } from "@/lib/settings";
+import { getAuthenticatedSettings, getSettings, BusinessSettings } from "@/lib/settings";
 import { ArrowLeft, Download, Printer, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { generatePDF } from "@/lib/pdf";
@@ -25,11 +25,21 @@ export default function BillDetails() {
   const receiptRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    getBills()
-      .then(bills => setBill(bills.find(bill => !isGstBill(bill) && (bill.id === id || bill.receiptNumber === id)) ?? null))
+    const cachedBill = consumeCachedBill(id);
+    if (cachedBill && !isGstBill(cachedBill)) {
+      setBill(cachedBill);
+      setSettings(getSettings());
+      setMounted(true);
+      return;
+    }
+
+    Promise.all([getBills(), getAuthenticatedSettings()])
+      .then(([bills, currentSettings]) => {
+        setBill(bills.find(bill => !isGstBill(bill) && (bill.id === id || bill.receiptNumber === id)) ?? null);
+        setSettings(currentSettings);
+      })
       .catch(error => alert(error instanceof Error ? `Failed to fetch bill: ${error.message}` : "Failed to fetch bill"))
       .finally(() => {
-        setSettings(getSettings());
         setMounted(true);
       });
   }, [id]);

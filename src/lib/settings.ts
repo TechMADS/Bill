@@ -2,6 +2,7 @@ import { getData, storeData } from "./storage";
 import { getActiveShopId } from "@/lib/auth";
 
 export interface BusinessSettings {
+  shopId: string;
   businessName: string;
   businessLegalName: string;
   ownerName: string;
@@ -21,6 +22,7 @@ export interface BusinessSettings {
 }
 
 const defaultSettings: BusinessSettings = {
+  shopId: "",
   businessName: "Acme Corp",
   businessLegalName: "",
   ownerName: "John Doe",
@@ -41,6 +43,7 @@ const defaultSettings: BusinessSettings = {
 
 const toSettings = (profile: Record<string, unknown>): BusinessSettings => ({
   ...defaultSettings,
+  shopId: String(profile.shopId || ""),
   businessName: String(profile.businessName || ""),
   ownerName: String(profile.ownerName || ""),
   phone: String(profile.phone || ""),

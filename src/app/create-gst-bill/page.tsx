@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { createBill, getNextReceiptNumber } from "@/lib/bills";
-import { getSettings } from "@/lib/settings";
+import { getAuthenticatedSettings, BusinessSettings } from "@/lib/settings";
 import { calculateGstTotals, GstItem, GstMode, gstFields } from "@/lib/gst";
 import { numberToWords } from "@/lib/numberToWords";
 import { useRouter } from "next/navigation";
@@ -33,20 +33,23 @@ export default function CreateGstBill() {
   const [receiptNumber, setReceiptNumber] = useState("");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
-  const [customerGstin, setCustomerGstin] = useState("");
   const [placeOfSupply, setPlaceOfSupply] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [mode, setMode] = useState<GstMode>("intra");
-  const [reverseCharge, setReverseCharge] = useState(false);
   const [items, setItems] = useState<FormItem[]>([newItem(1)]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  const [settings, setSettings] = useState<BusinessSettings | null>(null);
 
   useEffect(() => {
     getNextReceiptNumber()
       .then(setReceiptNumber)
       .catch(() => setError("Unable to generate an invoice number. Please try again."));
+    getAuthenticatedSettings()
+      .then(setSettings)
+      .catch(profileError => setError(profileError instanceof Error ? profileError.message : "Unable to load business profile."));
     setMounted(true);
   }, []);
 
@@ -61,7 +64,10 @@ export default function CreateGstBill() {
 
   const handleSave = async () => {
     setError("");
-    const settings = getSettings();
+    if (!settings) {
+      setError("Unable to load the current business profile. Please try again.");
+      return;
+    }
     if (!settings.businessName.trim() || !settings.address.trim() || !settings.gstNumber.trim() || !settings.state.trim()) {
       setError("Complete Business Name, Business Address, GST Number, and State in Settings before saving a GST bill.");
       return;
@@ -92,18 +98,18 @@ export default function CreateGstBill() {
         receiptNumber,
         date,
         customerName: customerName.trim(),
+        customerPhone,
         customerAddress: customerAddress.trim(),
-        customerGstin: customerGstin.trim(),
         placeOfSupply: placeOfSupply.trim(),
-        reverseCharge,
         paymentMethod,
+        paymentReceivedByNumber: "Admin",
         items: totals.items,
         totals,
         amountInWords: numberToWords(totals.grandTotal),
         createdAt,
       });
       const savedBill = await createBill({ fields });
-      router.push(`/gst-bills/${encodeURIComponent(savedBill.id || savedBill.receiptNumber)}`);
+      router.push(`/bills?newBill=${encodeURIComponent(savedBill.receiptNumber)}`);
     } catch {
       setError("GST bill could not be saved. Check your connection and try again.");
     } finally {
@@ -133,10 +139,11 @@ export default function CreateGstBill() {
 
       <Card>
         <CardHeader title="Invoice Information" />
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-4">
           <Input label="Invoice Number" value={receiptNumber} readOnly />
           <Input label="Invoice Date" type="date" value={date} onChange={event => setDate(event.target.value)} />
           <Select label="Payment Method" value={paymentMethod} onChange={event => setPaymentMethod(event.target.value)} options={[{ label: "Cash", value: "Cash" }, { label: "UPI", value: "UPI" }]} />
+          <Input label="Payment Received By Number" value="Admin" readOnly />
         </CardContent>
       </Card>
 
@@ -145,9 +152,9 @@ export default function CreateGstBill() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Input label="Customer Name" value={customerName} onChange={event => setCustomerName(event.target.value)} />
-            <Input label="Customer GSTIN (optional)" value={customerGstin} onChange={event => setCustomerGstin(event.target.value)} />
+            <Input label="Customer Phone" value={customerPhone} onChange={event => setCustomerPhone(event.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" maxLength={10} />
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">Customer Address</label>
               <textarea rows={3} value={customerAddress} onChange={event => setCustomerAddress(event.target.value)} className="w-full resize-none rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
@@ -155,7 +162,6 @@ export default function CreateGstBill() {
             <div className="space-y-4">
               <Input label="Place of Supply" value={placeOfSupply} onChange={event => setPlaceOfSupply(event.target.value)} placeholder="State / State Code" />
               <Select label="Tax Type" value={mode} onChange={event => setMode(event.target.value as GstMode)} options={[{ label: "Intra-state (CGST + SGST)", value: "intra" }, { label: "Inter-state (IGST)", value: "inter" }]} />
-              <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={reverseCharge} onChange={event => setReverseCharge(event.target.checked)} /> Reverse Charge</label>
             </div>
           </div>
         </CardContent>

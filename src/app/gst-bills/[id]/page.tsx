@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Download, Printer, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { deleteBill, getBills, Bill } from "@/lib/bills";
+import { consumeCachedBill, deleteBill, getBills, Bill } from "@/lib/bills";
 import { isGstBill } from "@/lib/gst";
-import { getSettings, BusinessSettings } from "@/lib/settings";
+import { getAuthenticatedSettings, getSettings, BusinessSettings } from "@/lib/settings";
 import { generatePDF } from "@/lib/pdf";
 import { printDocument } from "@/lib/print";
 import { Button } from "@/components/ui/Button";
@@ -22,17 +22,42 @@ export default function GstBillDetails() {
   const [bill, setBill] = useState<Bill | null>(null);
   const [settings, setSettings] = useState<BusinessSettings | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [billLoadError, setBillLoadError] = useState("");
   const [error, setError] = useState("");
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    getBills()
-      .then(bills => setBill(bills.find(entry => (entry.id === id || entry.receiptNumber === id) && isGstBill(entry)) ?? null))
-      .catch(() => setError("Unable to load this GST bill."))
-      .finally(() => {
-        setSettings(getSettings());
-        setMounted(true);
-      });
+    const cachedBill = consumeCachedBill(id);
+    if (cachedBill && isGstBill(cachedBill)) {
+      setBill(cachedBill);
+      setSettings(getSettings());
+      setBillLoadError("");
+      setMounted(true);
+      return;
+    }
+
+    setMounted(false);
+    setBill(null);
+    setSettings(null);
+    setBillLoadError("");
+    setError("");
+
+    const billRequest = getBills()
+      .then(bills => {
+        const matchingBill = bills.find(entry => (entry.id === id || entry.receiptNumber === id) && isGstBill(entry)) ?? null;
+        if (matchingBill) {
+          setBill(matchingBill);
+          setBillLoadError("");
+        } else {
+          setBillLoadError("Unable to load this GST bill.");
+        }
+      })
+      .catch(() => setBillLoadError("Unable to load this GST bill."));
+    const settingsRequest = getAuthenticatedSettings()
+      .then(setSettings)
+      .catch(() => setError("Unable to load the business profile for this GST bill."));
+
+    Promise.all([billRequest, settingsRequest]).finally(() => setMounted(true));
   }, [id]);
 
   useEffect(() => {
@@ -52,15 +77,15 @@ export default function GstBillDetails() {
     if (!bill?.rowNumber || !confirm("Are you sure you want to delete this GST bill?")) return;
     try {
       await deleteBill(bill.rowNumber);
-      router.push("/create-bill");
+      router.push("/bills");
     } catch {
       setError("Unable to delete this GST bill. Please try again.");
     }
   };
 
   if (!mounted || !settings) return <Loading text="Loading GST bill..." />;
-  if (error && !bill) {
-    return <div className="mx-auto max-w-4xl space-y-4 pt-12 text-center"><h2 className="text-xl font-semibold text-slate-800">GST bill not found</h2><p className="text-sm text-red-600">{error}</p><Link href="/create-bill" className="text-blue-600 hover:underline">Return to Create Bill</Link></div>;
+  if (billLoadError) {
+    return <div className="mx-auto max-w-4xl space-y-4 pt-12 text-center"><h2 className="text-xl font-semibold text-slate-800">GST bill not found</h2><p className="text-sm text-red-600">{billLoadError}</p><Link href="/create-bill" className="text-blue-600 hover:underline">Return to Create Bill</Link></div>;
   }
   if (!bill) return <div className="mx-auto max-w-4xl pt-12 text-center"><h2 className="text-xl font-semibold text-slate-800">GST bill not found</h2><Link href="/create-bill" className="text-blue-600 hover:underline">Return to Create Bill</Link></div>;
 
@@ -68,7 +93,7 @@ export default function GstBillDetails() {
     <div className="mx-auto max-w-6xl space-y-6 pb-20">
       <div className="flex flex-col justify-between gap-4 print:hidden sm:flex-row sm:items-center">
         <div className="flex items-center gap-4">
-          <Link href="/create-bill" className="rounded-full p-2 text-slate-600 transition-colors hover:bg-slate-200"><ArrowLeft className="h-5 w-5" /></Link>
+          <Link href="/bills" className="rounded-full p-2 text-slate-600 transition-colors hover:bg-slate-200"><ArrowLeft className="h-5 w-5" /></Link>
           <h1 className="text-2xl font-bold text-slate-800">GST Bill {bill.receiptNumber}</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
