@@ -34,6 +34,7 @@ export default function CreateGstBill() {
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [warranty, setWarranty] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [placeOfSupply, setPlaceOfSupply] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Cash");
@@ -99,6 +100,7 @@ export default function CreateGstBill() {
         date,
         customerName: customerName.trim(),
         customerPhone,
+        warranty: settings.warrantyEnabled ? warranty : undefined,
         customerAddress: customerAddress.trim(),
         placeOfSupply: placeOfSupply.trim(),
         paymentMethod,
@@ -154,6 +156,14 @@ export default function CreateGstBill() {
             <Input label="Customer Name" value={customerName} onChange={event => setCustomerName(event.target.value)} />
             <Input label="Customer Phone" value={customerPhone} onChange={event => setCustomerPhone(event.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" maxLength={10} />
           </div>
+          {settings?.warrantyEnabled && (
+            <Input
+              label="Warranty"
+              value={warranty}
+              onChange={event => setWarranty(event.target.value)}
+              placeholder="e.g. 6 Months or 1 Year"
+            />
+          )}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-700">Customer Address</label>

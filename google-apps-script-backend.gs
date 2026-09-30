@@ -123,6 +123,69 @@ function getRawValueFromRow(row, headers, keyName) {
   return String(row[index] ?? "");
 }
 
+const SHOP_SETTINGS_RECORD_TYPE = "SHOP_SETTINGS";
+
+function getShopWarrantyEnabledFromSheet(sheet) {
+  if (sheet.getLastRow() < 2 || sheet.getLastColumn() === 0) return false;
+
+  const rows = sheet.getDataRange().getDisplayValues();
+  const headers = rows[0].map((header) => normalizeHeader(header));
+  const recordTypeIndex = headers.indexOf(normalizeHeader("Record Type"));
+  const warrantyOptionIndex = headers.indexOf(normalizeHeader("Warranty Option"));
+  if (recordTypeIndex === -1 || warrantyOptionIndex === -1) return false;
+
+  for (let i = 1; i < rows.length; i += 1) {
+    if (String(rows[i][recordTypeIndex] || "").trim() === SHOP_SETTINGS_RECORD_TYPE) {
+      return normalizeHeader(rows[i][warrantyOptionIndex]) === "enabled";
+    }
+  }
+  return false;
+}
+
+function getWarrantyEnabled(shopId) {
+  const safeShopId = String(shopId || "").trim();
+  const sheet = safeShopId ? getSpreadsheet().getSheetByName(safeShopId) : null;
+  return sheet ? getShopWarrantyEnabledFromSheet(sheet) : false;
+}
+
+function saveShopWarrantyOption(shopId, enabled) {
+  const sheet = getShopSheet(shopId);
+  let lastColumn = sheet.getLastColumn();
+  let headers = lastColumn > 0
+    ? sheet.getRange(1, 1, 1, lastColumn).getValues()[0].map((header) => String(header || "").trim())
+    : [];
+
+  if (!headers.length) {
+    headers = ["Record Type", "Warranty Option"];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  } else {
+    const normalizedHeaders = headers.map((header) => normalizeHeader(header));
+    const missingHeaders = ["Record Type", "Warranty Option"].filter(
+      (header) => !normalizedHeaders.includes(normalizeHeader(header))
+    );
+    if (missingHeaders.length) {
+      sheet.getRange(1, lastColumn + 1, 1, missingHeaders.length).setValues([missingHeaders]);
+      headers = headers.concat(missingHeaders);
+    }
+  }
+
+  const normalizedHeaders = headers.map((header) => normalizeHeader(header));
+  const recordTypeIndex = normalizedHeaders.indexOf(normalizeHeader("Record Type"));
+  const warrantyOptionIndex = normalizedHeaders.indexOf(normalizeHeader("Warranty Option"));
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i += 1) {
+    if (String(rows[i][recordTypeIndex] || "").trim() === SHOP_SETTINGS_RECORD_TYPE) {
+      sheet.getRange(i + 1, warrantyOptionIndex + 1).setValue(enabled ? "Enabled" : "Disabled");
+      return;
+    }
+  }
+
+  const settingsRow = new Array(headers.length).fill("");
+  settingsRow[recordTypeIndex] = SHOP_SETTINGS_RECORD_TYPE;
+  settingsRow[warrantyOptionIndex] = enabled ? "Enabled" : "Disabled";
+  sheet.appendRow(settingsRow);
+}
+
 function getShopProfileFromRow(row, headers) {
   const shopId = getValueFromRow(row, headers, "Shop ID");
   const businessName = getValueFromRow(row, headers, "Business Name");
@@ -145,7 +208,8 @@ function getShopProfileFromRow(row, headers) {
     state,
     email,
     username,
-    password
+    password,
+    warrantyEnabled: getWarrantyEnabled(shopId)
   };
 }
 
@@ -188,6 +252,10 @@ function updateShopProfile(body) {
     }
   });
   sheet.getRange(rowNumber, 1, 1, values[0].length).setValues([row]);
+
+  if (Object.prototype.hasOwnProperty.call(payload, "warrantyEnabled")) {
+    saveShopWarrantyOption(shopId, payload.warrantyEnabled === true);
+  }
 
   return { success: true, profile: getShopProfileFromRow(row, headers) };
 }
@@ -285,7 +353,8 @@ function doGet(e) {
         state: profile.state,
         email: profile.email,
         username: profile.username,
-        password: profile.password
+        password: profile.password,
+        warrantyEnabled: profile.warrantyEnabled
       });
     }
 
@@ -338,7 +407,8 @@ function doPost(e) {
         state: profile.state,
         email: profile.email,
         username: profile.username,
-        password: profile.password
+        password: profile.password,
+        warrantyEnabled: profile.warrantyEnabled
       });
     }
 
@@ -395,10 +465,14 @@ function getBills(shopId) {
 
   const rows = sheet.getRange(1, 1, lastRow, lastColumn).getDisplayValues();
   const headers = rows[0].map((header) => String(header || "").trim());
+  const recordTypeIndex = headers.findIndex((header) => normalizeHeader(header) === normalizeHeader("Record Type"));
   const records = [];
 
   for (let i = 1; i < rows.length; i += 1) {
     const row = rows[i];
+    if (recordTypeIndex !== -1 && String(row[recordTypeIndex] || "").trim() === SHOP_SETTINGS_RECORD_TYPE) {
+      continue;
+    }
     const record = {};
     headers.forEach((header, index) => {
       if (header) {

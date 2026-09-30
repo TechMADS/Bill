@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LockKeyhole, UserRound } from "lucide-react";
+import { Eye, EyeOff, LockKeyhole, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -81,14 +82,26 @@ export default function LoginPage() {
               icon={<UserRound className="h-4 w-4" />}
               autoComplete="username"
             />
-            <Input
-              label="Password"
-              type="password"
-              value={password}
-              onChange={event => setPassword(event.target.value)}
-              placeholder="Enter password"
-              autoComplete="current-password"
-            />
+            <div className="relative">
+              <Input
+                label="Password"
+                type={isPasswordVisible ? "text" : "password"}
+                value={password}
+                onChange={event => setPassword(event.target.value)}
+                placeholder="Enter password"
+                autoComplete="current-password"
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setIsPasswordVisible(visible => !visible)}
+                aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+                aria-pressed={isPasswordVisible}
+                className="absolute right-3 top-[43px] flex h-6 w-6 -translate-y-1/2 items-center justify-center text-slate-500 hover:text-slate-700"
+              >
+                {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
 
             {error && (
               <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">

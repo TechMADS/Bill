@@ -32,6 +32,7 @@ const getProfile = async (request: NextRequest) => {
       gstNumber: payload.gstNumber || "",
       state: payload.state || "",
       email: payload.email || "",
+      warrantyEnabled: payload.warrantyEnabled === true || String(payload.warrantyEnabled).toLowerCase() === "true",
       username: payload.username || "",
       password: payload.password || "",
     });
@@ -67,7 +68,12 @@ export async function PUT(request: NextRequest) {
     const response = await fetch(url.toString(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "profile/update", shopId, fields }),
+      body: JSON.stringify({
+        action: "profile/update",
+        shopId,
+        fields,
+        ...(typeof body?.warrantyEnabled === "boolean" ? { warrantyEnabled: body.warrantyEnabled } : {}),
+      }),
       cache: "no-store",
     });
     const payload = await response.json().catch(() => null);

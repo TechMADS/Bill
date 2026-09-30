@@ -53,6 +53,7 @@ export default function Sidebar({ shopName, onClose }: { shopName: string; onClo
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={onClose}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-blue-600 text-white"

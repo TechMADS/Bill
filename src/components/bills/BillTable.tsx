@@ -1,5 +1,5 @@
 import React from "react";
-import { Bill, cacheBillForNavigation } from "@/lib/bills";
+import { Bill, cacheBillForNavigation, sourceFieldValue } from "@/lib/bills";
 import { isGstBill } from "@/lib/gst";
 import { format } from "date-fns";
 import Link from "next/link";
@@ -21,6 +21,7 @@ export function BillTable({ bills, onDelete }: BillTableProps) {
             <th className="px-6 py-4 font-semibold">Receipt No.</th>
             <th className="px-6 py-4 font-semibold">Date</th>
             <th className="px-6 py-4 font-semibold">Customer</th>
+            <th className="px-6 py-4 font-semibold">Warranty</th>
             <th className="px-6 py-4 font-semibold">Payment Method</th>
             <th className="px-6 py-4 font-semibold text-right">Amount</th>
             <th className="px-6 py-4 font-semibold text-center">Action</th>
@@ -33,6 +34,7 @@ export function BillTable({ bills, onDelete }: BillTableProps) {
                 <td className="px-6 py-4 font-medium text-blue-600">{bill.receiptNumber}</td>
                 <td className="px-6 py-4 text-slate-600">{format(new Date(bill.date), 'MMM dd, yyyy')}</td>
                 <td className="px-6 py-4 font-medium text-slate-800">{bill.customerName}</td>
+                <td className="px-6 py-4 text-slate-600">{sourceFieldValue(bill.fields ?? {}, ["Warranty"]) || "-"}</td>
                 <td className="px-6 py-4">
                   <Badge variant={bill.paymentMethod === "UPI" ? "primary" : "neutral"}>
                     {bill.paymentMethod}
@@ -56,7 +58,7 @@ export function BillTable({ bills, onDelete }: BillTableProps) {
             ))
           ) : (
             <tr>
-              <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+              <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                 No receipts found matching your criteria.
               </td>
             </tr>

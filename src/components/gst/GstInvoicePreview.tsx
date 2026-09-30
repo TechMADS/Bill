@@ -19,6 +19,7 @@ export const GstInvoicePreview = forwardRef<HTMLDivElement, GstInvoicePreviewPro
   const items = gstItemsFromBill(bill);
   const customerAddress = gstField(bill, ["Customer Address"]);
   const customerPhone = gstField(bill, ["Customer Phone"]);
+  const warranty = gstField(bill, ["Warranty"]);
   const placeOfSupply = gstField(bill, ["Place of Supply"]);
   const paymentReceivedBy = gstField(bill, ["Payment Received By Number"]) || "Admin";
   const taxableValue = Number(gstField(bill, ["Total Taxable Value"])) || 0;
@@ -44,6 +45,7 @@ export const GstInvoicePreview = forwardRef<HTMLDivElement, GstInvoicePreviewPro
             <p className="font-semibold uppercase text-slate-500">Bill To</p>
             <p className="mt-2 text-base font-bold">{bill.customerName}</p>
             {customerPhone && <p className="text-slate-600">Phone: {customerPhone}</p>}
+            {warranty && <p className="mt-1 text-slate-600">Warranty: {warranty}</p>}
             {customerAddress && <p className="whitespace-pre-line text-slate-600">{customerAddress}</p>}
             {placeOfSupply && <p className="mt-1 text-slate-600">Place of Supply: {placeOfSupply}</p>}
           </div>

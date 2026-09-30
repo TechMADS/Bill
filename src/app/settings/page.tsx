@@ -7,7 +7,7 @@ import {
   saveAuthenticatedSettings,
   BusinessSettings,
 } from "@/lib/settings";
-import { Save } from "lucide-react";
+import { Check, Save, X } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -45,7 +45,7 @@ export default function Settings() {
     );
   }
 
-  const handleChange = (field: keyof BusinessSettings, value: string) => {
+  const handleChange = <Field extends keyof BusinessSettings,>(field: Field, value: BusinessSettings[Field]) => {
     setSettings({ ...settings, [field]: value });
   };
 
@@ -129,6 +129,32 @@ export default function Settings() {
 
           <Input label="State" value={settings.state} readOnly />
           <Input label="Shop ID" value={settings.shopId} readOnly />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader title="Warranty Option" />
+        <CardContent>
+          <div className="inline-flex rounded-md border border-slate-300 p-1" role="group" aria-label="Warranty option">
+            <Button
+              type="button"
+              variant={settings.warrantyEnabled ? "primary" : "ghost"}
+              aria-pressed={settings.warrantyEnabled}
+              onClick={() => handleChange("warrantyEnabled", true)}
+              icon={<Check className="h-4 w-4" />}
+            >
+              Enable
+            </Button>
+            <Button
+              type="button"
+              variant={!settings.warrantyEnabled ? "primary" : "ghost"}
+              aria-pressed={!settings.warrantyEnabled}
+              onClick={() => handleChange("warrantyEnabled", false)}
+              icon={<X className="h-4 w-4" />}
+            >
+              Disable
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

@@ -1,12 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import { Menu } from "lucide-react";
 
 export function AppLayoutClient({ children, shopName }: { children: React.ReactNode; shopName: string }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      setIsSidebarOpen(false);
+    }
+  }, [pathname]);
+
+  const closeMobileSidebar = () => {
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      setIsSidebarOpen(false);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden">
@@ -20,7 +34,7 @@ export function AppLayoutClient({ children, shopName }: { children: React.ReactN
       <div className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0 ${
         isSidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
-        <Sidebar shopName={shopName} onClose={() => setIsSidebarOpen(false)} />
+        <Sidebar shopName={shopName} onClose={closeMobileSidebar} />
       </div>
 
       <div className="flex-1 flex flex-col w-full min-w-0">

@@ -17,6 +17,7 @@ const fieldValue = (bill: Bill, names: string[]): string => {
 
 export function ReceiptDetails({ bill, settings }: ReceiptDetailsProps) {
   const receiverName = fieldValue(bill, ["Payment Received By Number"]) || settings.defaultReceiverName;
+  const warranty = fieldValue(bill, ["Warranty"]);
   const upiReference = bill.paymentMethod === "UPI"
     ? fieldValue(bill, ["UPI Transaction ID", "UPI Reference ID", "Transaction ID", "Reference ID"])
     : "";
@@ -39,6 +40,7 @@ export function ReceiptDetails({ bill, settings }: ReceiptDetailsProps) {
         <div className="mt-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <div><p className="text-slate-500">Customer Name</p><p className="mt-1 text-base font-semibold text-slate-900">{bill.customerName}</p></div>
           <div><p className="text-slate-500">Customer Phone</p><p className="mt-1 text-base font-semibold text-slate-900">{bill.customerPhone || "-"}</p></div>
+          {warranty && <div><p className="text-slate-500">Warranty</p><p className="mt-1 text-base font-semibold text-slate-900">{warranty}</p></div>}
         </div>
       </section>
 

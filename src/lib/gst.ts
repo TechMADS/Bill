@@ -59,6 +59,7 @@ export const gstFields = (input: {
   date: string;
   customerName: string;
   customerPhone: string;
+  warranty?: string;
   customerAddress: string;
   placeOfSupply: string;
   paymentMethod: string;
@@ -76,6 +77,7 @@ export const gstFields = (input: {
   "Date": input.date,
   "Customer Name": input.customerName,
   "Customer Phone": input.customerPhone,
+  ...(input.warranty !== undefined ? { Warranty: input.warranty } : {}),
   "Customer Address": input.customerAddress,
   "Place of Supply": input.placeOfSupply,
   "Payment Method": input.paymentMethod,

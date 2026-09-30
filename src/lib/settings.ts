@@ -17,6 +17,7 @@ export interface BusinessSettings {
   accountNumber: string;
   ifsc: string;
   defaultReceiverName: string;
+  warrantyEnabled: boolean;
   username: string;
   password: string;
 }
@@ -37,6 +38,7 @@ const defaultSettings: BusinessSettings = {
   accountNumber: "",
   ifsc: "",
   defaultReceiverName: "Admin",
+  warrantyEnabled: false,
   username: "",
   password: "",
 };
@@ -51,6 +53,7 @@ const toSettings = (profile: Record<string, unknown>): BusinessSettings => ({
   email: String(profile.email || ""),
   gstNumber: String(profile.gstNumber || ""),
   state: String(profile.state || ""),
+  warrantyEnabled: profile.warrantyEnabled === true || String(profile.warrantyEnabled).toLowerCase() === "true",
   username: String(profile.username || ""),
   password: String(profile.password || ""),
 });
@@ -93,7 +96,7 @@ export const saveAuthenticatedSettings = async (settings: BusinessSettings): Pro
       State: settings.state,
       Username: settings.username,
       Password: settings.password,
-    } }),
+    }, warrantyEnabled: settings.warrantyEnabled }),
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || payload.success === false) throw new Error(payload.message || "Unable to save shop settings.");

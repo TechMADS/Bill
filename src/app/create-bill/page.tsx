@@ -6,6 +6,7 @@ import { createBill, getNextReceiptNumber, PaymentMethod } from "@/lib/bills";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { numberToWords } from "@/lib/numberToWords";
+import { getAuthenticatedSettings } from "@/lib/settings";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -21,6 +22,8 @@ export default function CreateBill() {
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [warranty, setWarranty] = useState("");
+  const [warrantyEnabled, setWarrantyEnabled] = useState(false);
   
   const [amount, setAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Cash");
@@ -28,7 +31,10 @@ export default function CreateBill() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    getAuthenticatedSettings()
+      .then(settings => setWarrantyEnabled(settings.warrantyEnabled))
+      .catch(() => setWarrantyEnabled(false))
+      .finally(() => setMounted(true));
   }, []);
 
   useEffect(() => {
@@ -71,6 +77,7 @@ export default function CreateBill() {
       "Created At": createdAt,
       "Updated At": createdAt,
     };
+    if (warrantyEnabled) fields.Warranty = warranty;
     try {
       const newBill = await createBill({ fields });
       const billRouteId = newBill.id || newBill.receiptNumber;
@@ -146,6 +153,14 @@ export default function CreateBill() {
               maxLength={10}
               onChange={e => setCustomerPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} 
             />
+            {warrantyEnabled && (
+              <Input
+                label="Warranty"
+                value={warranty}
+                onChange={event => setWarranty(event.target.value)}
+                placeholder="e.g. 6 Months or 1 Year"
+              />
+            )}
           </CardContent>
         </Card>
       </div>
