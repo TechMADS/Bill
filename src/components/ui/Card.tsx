@@ -1,8 +1,8 @@
 import React from "react";
 
-export function Card({ children, className = "" }: { children: React.ReactNode, className?: string }) {
+export function Card({ children, className = "", overflowVisible = false }: { children: React.ReactNode, className?: string, overflowVisible?: boolean }) {
   return (
-    <div className={`rounded-xl border bg-white shadow-sm overflow-hidden ${className}`}>
+    <div className={`rounded-xl border bg-white shadow-sm ${overflowVisible ? "" : "overflow-hidden"} ${className}`}>
       {children}
     </div>
   );

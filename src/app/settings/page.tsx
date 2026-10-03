@@ -7,7 +7,7 @@ import {
   saveAuthenticatedSettings,
   BusinessSettings,
 } from "@/lib/settings";
-import { Check, Save, X } from "lucide-react";
+import { Check, Eye, EyeOff, Save, X } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -19,6 +19,7 @@ export default function Settings() {
   const [saveStatus, setSaveStatus] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(true);
 
   useEffect(() => {
     getAuthenticatedSettings()
@@ -174,19 +175,34 @@ export default function Settings() {
           <Input
             label="Username"
             value={settings.username}
-            onChange={(e) =>
-              handleChange("username", e.target.value)
-            }
+            readOnly
+            aria-readonly="true"
+            className="bg-slate-50 text-slate-600 cursor-default"
           />
 
-          <Input
-            label="Password"
-            type="text"
-            value={settings.password}
-            onChange={(e) =>
-              handleChange("password", e.target.value)
-            }
-          />
+          <div className="relative">
+            <Input
+              label="Password"
+              type={isPasswordVisible ? "text" : "password"}
+              value={settings.password}
+              readOnly
+              aria-readonly="true"
+              className="bg-slate-50 pr-10 text-slate-600 cursor-default"
+            />
+            <button
+              type="button"
+              onClick={() => setIsPasswordVisible((visible) => !visible)}
+              aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+              title={isPasswordVisible ? "Hide password" : "Show password"}
+              className="absolute right-2 top-[1.85rem] rounded p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {isPasswordVisible ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </CardContent>
       </Card>
     </div>

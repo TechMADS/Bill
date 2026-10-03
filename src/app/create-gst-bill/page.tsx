@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { WarrantyInput } from "@/components/bills/WarrantyInput";
 import { createBill, getNextReceiptNumber } from "@/lib/bills";
 import { getAuthenticatedSettings, BusinessSettings } from "@/lib/settings";
 import { calculateGstTotals, GstItem, GstMode, gstFields } from "@/lib/gst";
@@ -149,7 +150,7 @@ export default function CreateGstBill() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card overflowVisible={settings?.warrantyEnabled} className={settings?.warrantyEnabled ? "relative z-20" : ""}>
         <CardHeader title="Customer Details" />
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -157,11 +158,9 @@ export default function CreateGstBill() {
             <Input label="Customer Phone" value={customerPhone} onChange={event => setCustomerPhone(event.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" maxLength={10} />
           </div>
           {settings?.warrantyEnabled && (
-            <Input
-              label="Warranty"
+            <WarrantyInput
               value={warranty}
-              onChange={event => setWarranty(event.target.value)}
-              placeholder="e.g. 6 Months or 1 Year"
+              onChange={setWarranty}
             />
           )}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">

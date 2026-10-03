@@ -94,8 +94,6 @@ export const saveAuthenticatedSettings = async (settings: BusinessSettings): Pro
       Address: settings.address,
       "GST Number": settings.gstNumber,
       State: settings.state,
-      Username: settings.username,
-      Password: settings.password,
     }, warrantyEnabled: settings.warrantyEnabled }),
   });
   const payload = await response.json().catch(() => ({}));

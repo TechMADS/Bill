@@ -12,6 +12,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { WarrantyInput } from "@/components/bills/WarrantyInput";
 import Link from "next/link";
 
 export default function CreateBill() {
@@ -135,7 +136,7 @@ export default function CreateBill() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card overflowVisible={warrantyEnabled} className={warrantyEnabled ? "relative z-20" : ""}>
           <CardHeader title="Customer Details" />
           <CardContent className="space-y-4">
             <Input 
@@ -154,11 +155,9 @@ export default function CreateBill() {
               onChange={e => setCustomerPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} 
             />
             {warrantyEnabled && (
-              <Input
-                label="Warranty"
+              <WarrantyInput
                 value={warranty}
-                onChange={event => setWarranty(event.target.value)}
-                placeholder="e.g. 6 Months or 1 Year"
+                onChange={setWarranty}
               />
             )}
           </CardContent>
