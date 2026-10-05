@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, Menu, User } from "lucide-react";
 import { clearAuthSession, getAuthSession } from "@/lib/auth";
@@ -49,9 +50,13 @@ export default function Header({
           <p className="text-sm font-semibold text-slate-700">{session?.username || session?.shopId || "User"}</p>
         </div>
 
-        <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700">
+        <Link
+          href="/settings"
+          aria-label="Profile settings"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-blue-700"
+        >
           <User className="h-5 w-5" />
-        </div>
+        </Link>
 
         <button
           type="button"
