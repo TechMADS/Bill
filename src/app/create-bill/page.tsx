@@ -23,6 +23,7 @@ export default function CreateBill() {
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [productName, setProductName] = useState("");
   const [warranty, setWarranty] = useState("");
   const [warrantyEnabled, setWarrantyEnabled] = useState(false);
   
@@ -71,6 +72,7 @@ export default function CreateBill() {
       "Date": date,
       "Customer Name": customerName,
       "Customer Phone": customerPhone,
+      "Product Name": productName,
       "Payment Received By Number": "Admin",
       "Amount": String(amount),
       "Payment Method": paymentMethod,
@@ -167,6 +169,12 @@ export default function CreateBill() {
       <Card>
         <CardHeader title="Payment Details" />
         <CardContent className="space-y-6">
+          <Input
+            label="Product Name"
+            placeholder="Product name"
+            value={productName}
+            onChange={e => setProductName(e.target.value)}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input 
               type="number"
