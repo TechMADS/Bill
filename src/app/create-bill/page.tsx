@@ -137,7 +137,7 @@ export default function CreateBill() {
               onChange={e => setProductName(e.target.value)}
             />
             <Input 
-              label="Payment Received By Number" 
+              label="Payment Received  " 
               value="Admin"
               readOnly
             />
@@ -161,6 +161,12 @@ export default function CreateBill() {
               pattern="[0-9]*"
               maxLength={10}
               onChange={e => setCustomerPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} 
+            />
+                   <Input
+              label="Product Name"
+              placeholder="Product name"
+              value={productName}
+              onChange={e => setProductName(e.target.value)}
             />
             {warrantyEnabled && (
               <WarrantyInput
