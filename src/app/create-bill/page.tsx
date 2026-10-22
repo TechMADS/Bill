@@ -130,12 +130,7 @@ export default function CreateBill() {
               value={date} 
               onChange={e => setDate(e.target.value)} 
             />
-            <Input
-              label="Product Name"
-              placeholder="Product name"
-              value={productName}
-              onChange={e => setProductName(e.target.value)}
-            />
+         
             <Input 
               label="Payment Received  " 
               value="Admin"
